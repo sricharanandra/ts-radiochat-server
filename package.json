@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "main": "dist/server.js",
   "scripts": {
-        "build": "tsc",
-        "start": "node dist/server.js",
-        "dev": "ts-node src/server.ts",
-        "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+        "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -14,14 +19,15 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "@prisma/client": "^6.10.1",
     "@types/node": "^22.10.5",
-    "lowdb": "^7.0.1",
     "typescript": "^5.7.3",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.17",
     "@types/lowdb": "^1.0.15",
-    "@types/ws": "^8.5.13"
+    "@types/ws": "^8.5.13",
+    "prisma": "^6.10.1"
   }
 }

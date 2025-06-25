@@ -268,3 +268,16 @@ async function handleClientCommand(command, sender, ws, roomId) {
 function generateRoomId() {
     return crypto_1.default.randomBytes(4).toString("hex").slice(0, 7);
 }
+// PRISMA RELATED
+// Add graceful shutdown handling
+process.on('SIGINT', async () => {
+    console.log('Received SIGINT, shutting down gracefully...');
+    await (0, db_1.disconnectDB)();
+    process.exit(0);
+});
+process.on('SIGTERM', async () => {
+    console.log('Received SIGTERM, shutting down gracefully...');
+    await (0, db_1.disconnectDB)();
+    process.exit(0);
+});
+//# sourceMappingURL=server.js.map

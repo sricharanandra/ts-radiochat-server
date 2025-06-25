@@ -1,52 +1,94 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.prisma = void 0;
 exports.initDB = initDB;
 exports.saveRoom = saveRoom;
+exports.roomExists = roomExists;
 exports.appendMessage = appendMessage;
 exports.deleteRoom = deleteRoom;
-exports.roomExists = roomExists;
 exports.getRoomCreator = getRoomCreator;
 exports.getRoomHistory = getRoomHistory;
 exports.getAllRooms = getAllRooms;
-const path_1 = require("path");
-const lowdb_1 = require("lowdb");
-const node_1 = require("lowdb/node");
-// Initialize lowdb - create the adapter and db instance
-const file = (0, path_1.join)(__dirname, 'db.json');
-const adapter = new node_1.JSONFile(file);
-const defaultData = { rooms: [] };
-const db = new lowdb_1.Low(adapter, defaultData);
+exports.disconnectDB = disconnectDB;
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
+exports.prisma = prisma;
 async function initDB() {
-    await db.read();
-    db.data || (db.data = defaultData);
-    await db.write();
+    try {
+        await prisma.$connect();
+        console.log("Connected to Postgres ");
+    }
+    catch (error) {
+        console.log("Error connecting to Postgres", error);
+        throw error;
+    }
 }
 async function saveRoom(roomId, creator) {
-    db.data.rooms.push({ id: roomId, creator, messageHistory: [] });
-    await db.write();
+    await prisma.room.create({
+        data: {
+            id: roomId,
+            creator,
+            messageHistory: []
+        }
+    });
+}
+async function roomExists(roomId) {
+    const room = await prisma.room.findUnique({
+        where: { id: roomId },
+    });
+    return room !== null;
 }
 async function appendMessage(roomId, message) {
-    const room = db.data.rooms.find((r) => r.id === roomId);
+    const room = await prisma.room.findUnique({
+        where: { id: roomId }
+    });
     if (room) {
-        room.messageHistory.push(message);
-        await db.write();
+        // Ensure all elements are strings and create a new array
+        const currentHistory = room.messageHistory.map(msg => String(msg));
+        const updatedHistory = [...currentHistory, message];
+        await prisma.room.update({
+            where: { id: roomId },
+            data: {
+                messageHistory: updatedHistory
+            }
+        });
     }
 }
 async function deleteRoom(roomId) {
-    db.data.rooms = db.data.rooms.filter((r) => r.id !== roomId);
-    await db.write();
-}
-async function roomExists(roomId) {
-    return db.data.rooms.some((r) => r.id === roomId);
+    await prisma.room.delete({
+        where: { id: roomId }
+    });
 }
 async function getRoomCreator(roomId) {
-    var _a;
-    return (_a = db.data.rooms.find((r) => r.id === roomId)) === null || _a === void 0 ? void 0 : _a.creator;
+    const room = await prisma.room.findUnique({
+        where: { id: roomId },
+        select: { creator: true }
+    });
+    return room?.creator;
 }
 async function getRoomHistory(roomId) {
-    var _a;
-    return ((_a = db.data.rooms.find((r) => r.id === roomId)) === null || _a === void 0 ? void 0 : _a.messageHistory) || [];
+    const room = await prisma.room.findUnique({
+        where: { id: roomId },
+        select: { messageHistory: true }
+    });
+    return room?.messageHistory || [];
 }
 async function getAllRooms() {
-    return [...db.data.rooms];
+    const rooms = await prisma.room.findMany({
+        select: {
+            id: true,
+            creator: true,
+            messageHistory: true
+        }
+    });
+    return rooms.map(room => ({
+        id: room.id,
+        creator: room.creator,
+        messageHistory: room.messageHistory
+    }));
 }
+// Graceful shutdown
+async function disconnectDB() {
+    await prisma.$disconnect();
+}
+//# sourceMappingURL=db.js.map

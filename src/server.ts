@@ -8,7 +8,8 @@ import {
     getRoomCreator,
     getRoomHistory,
     getAllRooms,
-    initDB
+    initDB,
+    disconnectDB
 } from "./db";
 import { ChatRoom, User, StoredRoom } from "./types";
 
@@ -315,3 +316,18 @@ async function handleClientCommand(command: string, sender: string, ws: WebSocke
 function generateRoomId(): string {
     return crypto.randomBytes(4).toString("hex").slice(0, 7);
 }
+
+
+// PRISMA RELATED
+// Add graceful shutdown handling
+process.on('SIGINT', async () => {
+    console.log('Received SIGINT, shutting down gracefully...');
+    await disconnectDB();
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    console.log('Received SIGTERM, shutting down gracefully...');
+    await disconnectDB();
+    process.exit(0);
+});

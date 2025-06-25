@@ -1,55 +1,95 @@
-import { join } from 'path';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
-import { StoredRoom } from './types';
+import { PrismaClient } from "@prisma/client";
+import { StoredRoom } from "./types"
 
-// Define the schema for our database
-type Data = {
-    rooms: StoredRoom[];
-};
-
-// Initialize lowdb - create the adapter and db instance
-const file = join(__dirname, 'db.json');
-const adapter = new JSONFile<Data>(file);
-const defaultData: Data = { rooms: [] };
-const db = new Low(adapter, defaultData);
+const prisma = new PrismaClient();
 
 export async function initDB() {
-    await db.read();
-    db.data ||= defaultData;
-    await db.write();
+    try {
+        await prisma.$connect()
+        console.log("Connected to Postgres ")
+    } catch (error) {
+        console.log("Error connecting to Postgres", error)
+        throw error;
+    }
 }
 
 export async function saveRoom(roomId: string, creator: string) {
-    db.data.rooms.push({ id: roomId, creator, messageHistory: [] });
-    await db.write();
+    await prisma.room.create({
+        data: {
+            id: roomId,
+            creator,
+            messageHistory: []
+        }
+    })
+}
+
+export async function roomExists(roomId: string) {
+    const room = await prisma.room.findUnique({
+        where: { id: roomId },
+    });
+    return room !== null;
 }
 
 export async function appendMessage(roomId: string, message: string) {
-    const room = db.data.rooms.find((r) => r.id === roomId);
+    const room = await prisma.room.findUnique({
+        where: { id: roomId }
+    });
+
     if (room) {
-        room.messageHistory.push(message);
-        await db.write();
+        // Ensure all elements are strings and create a new array
+        const currentHistory: string[] = room.messageHistory.map(msg => String(msg));
+        const updatedHistory: string[] = [...currentHistory, message];
+
+        await prisma.room.update({
+            where: { id: roomId },
+            data: {
+                messageHistory: updatedHistory
+            }
+        });
     }
 }
 
 export async function deleteRoom(roomId: string) {
-    db.data.rooms = db.data.rooms.filter((r) => r.id !== roomId);
-    await db.write();
+    await prisma.room.delete({
+        where: { id: roomId }
+    })
 }
-
-export async function roomExists(roomId: string): Promise<boolean> {
-    return db.data.rooms.some((r) => r.id === roomId);
-}
-
 export async function getRoomCreator(roomId: string): Promise<string | undefined> {
-    return db.data.rooms.find((r) => r.id === roomId)?.creator;
+    const room = await prisma.room.findUnique({
+        where: { id: roomId },
+        select: { creator: true }
+    });
+    return room?.creator;
 }
 
 export async function getRoomHistory(roomId: string): Promise<string[]> {
-    return db.data.rooms.find((r) => r.id === roomId)?.messageHistory || [];
+    const room = await prisma.room.findUnique({
+        where: { id: roomId },
+        select: { messageHistory: true }
+    });
+    return room?.messageHistory || [];
 }
 
 export async function getAllRooms(): Promise<StoredRoom[]> {
-    return [...db.data.rooms];
+    const rooms = await prisma.room.findMany({
+        select: {
+            id: true,
+            creator: true,
+            messageHistory: true
+        }
+    });
+
+    return rooms.map(room => ({
+        id: room.id,
+        creator: room.creator,
+        messageHistory: room.messageHistory
+    }));
 }
+
+// Graceful shutdown
+export async function disconnectDB() {
+    await prisma.$disconnect();
+}
+
+// Export prisma instance for advanced queries if needed
+export { prisma };
