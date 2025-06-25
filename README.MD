@@ -125,7 +125,7 @@ See `prisma/schema.prisma` for the complete schema definition.
 
 ## 🌐 Related Projects
 
-- [RadioChat Client](https://github.com/sricharanandra/ts-radiochat-client) - TypeScript CLI client
+- [RadioChat Client](https://github.com/sricharanandra/ts-radiochat) - TypeScript CLI client
 
 ## 🤝 Contributing
 
