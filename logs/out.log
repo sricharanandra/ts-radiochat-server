@@ -859,3 +859,227 @@
 2025-06-27T13:02:06:   errorCode: 'P1001',
 2025-06-27T13:02:06:   retryable: undefined
 2025-06-27T13:02:06: }
+2025-06-27T13:05:52: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:05:52: Initializing server...
+2025-06-27T13:05:52: DATABASE_URL configured: YES
+2025-06-27T13:05:52: DATABASE_URL uses socket: YES
+2025-06-27T13:05:52: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:05:52: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:05:52: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:05:52:   -->  schema.prisma:13
+2025-06-27T13:05:52:    | 
+2025-06-27T13:05:52: 12 |   provider = "postgresql"
+2025-06-27T13:05:52: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:05:52:    | 
+2025-06-27T13:05:52: 
+2025-06-27T13:05:52: Validation Error Count: 1
+2025-06-27T13:05:52:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:05:52:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:05:52:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:05:52:   clientVersion: '6.10.1',
+2025-06-27T13:05:52:   errorCode: 'P1012',
+2025-06-27T13:05:52:   retryable: undefined
+2025-06-27T13:05:52: }
+2025-06-27T13:05:57: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:05:57: Initializing server...
+2025-06-27T13:05:57: DATABASE_URL configured: YES
+2025-06-27T13:05:57: DATABASE_URL uses socket: YES
+2025-06-27T13:05:57: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:05:57: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:05:57: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:05:57:   -->  schema.prisma:13
+2025-06-27T13:05:57:    | 
+2025-06-27T13:05:57: 12 |   provider = "postgresql"
+2025-06-27T13:05:57: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:05:57:    | 
+2025-06-27T13:05:57: 
+2025-06-27T13:05:57: Validation Error Count: 1
+2025-06-27T13:05:57:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:05:57:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:05:57:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:05:57:   clientVersion: '6.10.1',
+2025-06-27T13:05:57:   errorCode: 'P1012',
+2025-06-27T13:05:57:   retryable: undefined
+2025-06-27T13:05:57: }
+2025-06-27T13:06:01: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:06:01: Initializing server...
+2025-06-27T13:06:01: DATABASE_URL configured: YES
+2025-06-27T13:06:01: DATABASE_URL uses socket: YES
+2025-06-27T13:06:01: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:06:01: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:06:01: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:06:01:   -->  schema.prisma:13
+2025-06-27T13:06:01:    | 
+2025-06-27T13:06:01: 12 |   provider = "postgresql"
+2025-06-27T13:06:01: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:06:01:    | 
+2025-06-27T13:06:01: 
+2025-06-27T13:06:01: Validation Error Count: 1
+2025-06-27T13:06:01:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:06:01:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:06:01:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:06:01:   clientVersion: '6.10.1',
+2025-06-27T13:06:01:   errorCode: 'P1012',
+2025-06-27T13:06:01:   retryable: undefined
+2025-06-27T13:06:01: }
+2025-06-27T13:06:06: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:06:06: Initializing server...
+2025-06-27T13:06:06: DATABASE_URL configured: YES
+2025-06-27T13:06:06: DATABASE_URL uses socket: YES
+2025-06-27T13:06:06: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:06:06: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:06:06: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:06:06:   -->  schema.prisma:13
+2025-06-27T13:06:06:    | 
+2025-06-27T13:06:06: 12 |   provider = "postgresql"
+2025-06-27T13:06:06: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:06:06:    | 
+2025-06-27T13:06:06: 
+2025-06-27T13:06:06: Validation Error Count: 1
+2025-06-27T13:06:06:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:06:06:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:06:06:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:06:06:   clientVersion: '6.10.1',
+2025-06-27T13:06:06:   errorCode: 'P1012',
+2025-06-27T13:06:06:   retryable: undefined
+2025-06-27T13:06:06: }
+2025-06-27T13:06:10: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:06:11: Initializing server...
+2025-06-27T13:06:11: DATABASE_URL configured: YES
+2025-06-27T13:06:11: DATABASE_URL uses socket: YES
+2025-06-27T13:06:11: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:06:11: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:06:11: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:06:11:   -->  schema.prisma:13
+2025-06-27T13:06:11:    | 
+2025-06-27T13:06:11: 12 |   provider = "postgresql"
+2025-06-27T13:06:11: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:06:11:    | 
+2025-06-27T13:06:11: 
+2025-06-27T13:06:11: Validation Error Count: 1
+2025-06-27T13:06:11:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:06:11:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:06:11:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:06:11:   clientVersion: '6.10.1',
+2025-06-27T13:06:11:   errorCode: 'P1012',
+2025-06-27T13:06:11:   retryable: undefined
+2025-06-27T13:06:11: }
+2025-06-27T13:06:15: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:06:15: Initializing server...
+2025-06-27T13:06:15: DATABASE_URL configured: YES
+2025-06-27T13:06:15: DATABASE_URL uses socket: YES
+2025-06-27T13:06:15: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:06:15: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:06:15: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:06:15:   -->  schema.prisma:13
+2025-06-27T13:06:15:    | 
+2025-06-27T13:06:15: 12 |   provider = "postgresql"
+2025-06-27T13:06:15: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:06:15:    | 
+2025-06-27T13:06:15: 
+2025-06-27T13:06:15: Validation Error Count: 1
+2025-06-27T13:06:15:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:06:15:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:06:15:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:06:15:   clientVersion: '6.10.1',
+2025-06-27T13:06:15:   errorCode: 'P1012',
+2025-06-27T13:06:15:   retryable: undefined
+2025-06-27T13:06:15: }
+2025-06-27T13:06:20: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:06:20: Initializing server...
+2025-06-27T13:06:20: DATABASE_URL configured: YES
+2025-06-27T13:06:20: DATABASE_URL uses socket: YES
+2025-06-27T13:06:20: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:06:20: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:06:20: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:06:20:   -->  schema.prisma:13
+2025-06-27T13:06:20:    | 
+2025-06-27T13:06:20: 12 |   provider = "postgresql"
+2025-06-27T13:06:20: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:06:20:    | 
+2025-06-27T13:06:20: 
+2025-06-27T13:06:20: Validation Error Count: 1
+2025-06-27T13:06:20:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:06:20:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:06:20:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:06:20:   clientVersion: '6.10.1',
+2025-06-27T13:06:20:   errorCode: 'P1012',
+2025-06-27T13:06:20:   retryable: undefined
+2025-06-27T13:06:20: }
+2025-06-27T13:06:24: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:06:24: Initializing server...
+2025-06-27T13:06:24: DATABASE_URL configured: YES
+2025-06-27T13:06:24: DATABASE_URL uses socket: YES
+2025-06-27T13:06:24: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:06:24: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:06:24: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:06:24:   -->  schema.prisma:13
+2025-06-27T13:06:24:    | 
+2025-06-27T13:06:24: 12 |   provider = "postgresql"
+2025-06-27T13:06:24: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:06:24:    | 
+2025-06-27T13:06:24: 
+2025-06-27T13:06:24: Validation Error Count: 1
+2025-06-27T13:06:24:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:06:24:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:06:24:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:06:24:   clientVersion: '6.10.1',
+2025-06-27T13:06:24:   errorCode: 'P1012',
+2025-06-27T13:06:24:   retryable: undefined
+2025-06-27T13:06:24: }
+2025-06-27T13:06:29: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:06:29: Initializing server...
+2025-06-27T13:06:29: DATABASE_URL configured: YES
+2025-06-27T13:06:29: DATABASE_URL uses socket: YES
+2025-06-27T13:06:29: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:06:29: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:06:29: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:06:29:   -->  schema.prisma:13
+2025-06-27T13:06:29:    | 
+2025-06-27T13:06:29: 12 |   provider = "postgresql"
+2025-06-27T13:06:29: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:06:29:    | 
+2025-06-27T13:06:29: 
+2025-06-27T13:06:29: Validation Error Count: 1
+2025-06-27T13:06:29:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:06:29:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:06:29:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:06:29:   clientVersion: '6.10.1',
+2025-06-27T13:06:29:   errorCode: 'P1012',
+2025-06-27T13:06:29:   retryable: undefined
+2025-06-27T13:06:29: }
+2025-06-27T13:06:33: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:06:33: Initializing server...
+2025-06-27T13:06:33: DATABASE_URL configured: YES
+2025-06-27T13:06:33: DATABASE_URL uses socket: YES
+2025-06-27T13:06:33: DATABASE_URL: DATABASE_URL="postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql"
+2025-06-27T13:06:33: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:06:33: Error connecting to Postgres PrismaClientInitializationError: error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
+2025-06-27T13:06:33:   -->  schema.prisma:13
+2025-06-27T13:06:33:    | 
+2025-06-27T13:06:33: 12 |   provider = "postgresql"
+2025-06-27T13:06:33: 13 |   url      = env("DATABASE_URL")
+2025-06-27T13:06:33:    | 
+2025-06-27T13:06:33: 
+2025-06-27T13:06:33: Validation Error Count: 1
+2025-06-27T13:06:33:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:06:33:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:06:33:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:06:33:   clientVersion: '6.10.1',
+2025-06-27T13:06:33:   errorCode: 'P1012',
+2025-06-27T13:06:33:   retryable: undefined
+2025-06-27T13:06:33: }
+2025-06-27T13:23:36: [dotenv@16.6.0] injecting env (5) from .env
+2025-06-27T13:23:37: Initializing server...
+2025-06-27T13:23:37: DATABASE_URL configured: YES
+2025-06-27T13:23:37: DATABASE_URL uses socket: YES
+2025-06-27T13:23:37: DATABASE_URL: postgresql://sreus:sizza1000@localhost/radiochat?host=/var/run/postgresql
+2025-06-27T13:23:37: All env vars: [ 'DATABASE_URL' ]
+2025-06-27T13:23:37: Connected to Postgres successfully!
+2025-06-27T13:23:37: Database URL configured: YES
+2025-06-27T13:23:37: Loading 0 existing rooms from database
+2025-06-27T13:23:37: Server started successfully on port 8080.
+2025-06-27T13:26:59: Room 2787fa4 created by sreus.
+2025-06-27T13:27:45: btuch requested to join room 2787fa4.
+2025-06-27T13:27:48: btuch has been admitted to room 2787fa4.
+2025-06-27T13:36:18: hsh requested to join room 2787fa4.
