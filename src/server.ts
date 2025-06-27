@@ -25,6 +25,8 @@ const message_history_limit = 50;
 async function initialize() {
     try {
         console.log("Initializing server...");
+        console.log("DATABASE_URL configured:", process.env.DATABASE_URL ? "YES" : "NO");
+        console.log("DATABASE_URL uses socket:", process.env.DATABASE_URL?.includes('host=/') ? "YES" : "NO");
         await initDB();
         await loadExistingRooms();
         console.log("Server started successfully on port 8080.");
