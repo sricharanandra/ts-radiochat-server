@@ -1,18 +1,25 @@
 import { PrismaClient } from "@prisma/client";
 import { StoredRoom } from "./types"
 
-const prisma = new PrismaClient();
+let prisma: PrismaClient;
 
 export async function initDB() {
     try {
-        await prisma.$connect()
-        console.log("Connected to Postgres ")
+        // Create the PrismaClient here, after environment variables are loaded
+        if (!prisma) {
+            prisma = new PrismaClient({
+                log: ['error', 'warn'],
+            });
+        }
+
+        await prisma.$connect();
+        console.log("Connected to Postgres successfully!");
+        console.log("Database URL configured:", process.env.DATABASE_URL ? "YES" : "NO");
     } catch (error) {
-        console.log("Error connecting to Postgres", error)
+        console.log("Error connecting to Postgres", error);
         throw error;
     }
 }
-
 export async function saveRoom(roomId: string, creator: string) {
     await prisma.room.create({
         data: {
@@ -85,11 +92,16 @@ export async function getAllRooms(): Promise<StoredRoom[]> {
         messageHistory: room.messageHistory
     }));
 }
-
 // Graceful shutdown
 export async function disconnectDB() {
-    await prisma.$disconnect();
+    if (prisma) {
+        await prisma.$disconnect();
+    }
 }
 
-// Export prisma instance for advanced queries if needed
-export { prisma };
+export function getPrismaClient() {
+    if (!prisma) {
+        throw new Error("Database not initialized. Call initDB() first.");
+    }
+    return prisma;
+}

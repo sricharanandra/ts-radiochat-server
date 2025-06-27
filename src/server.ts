@@ -1,5 +1,9 @@
 import { WebSocketServer, WebSocket } from "ws";
+import dotenv from 'dotenv';
 import crypto from "crypto";
+// Load environment variables FIRST, before any database imports
+dotenv.config();
+
 import {
     saveRoom,
     roomExists,
@@ -19,11 +23,16 @@ const message_history_limit = 50;
 
 // Initialize the database and load existing rooms
 async function initialize() {
-    await initDB();
-    await loadExistingRooms();
-    console.log("Server started successfully on port 8080.");
+    try {
+        console.log("Initializing server...");
+        await initDB();
+        await loadExistingRooms();
+        console.log("Server started successfully on port 8080.");
+    } catch (error) {
+        console.error("Failed to initialize server:", error);
+        process.exit(1);
+    }
 }
-
 // Load rooms from the database on startup
 async function loadExistingRooms() {
     const storedRooms = await getAllRooms();
