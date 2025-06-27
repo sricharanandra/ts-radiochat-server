@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.prisma = void 0;
 exports.initDB = initDB;
 exports.saveRoom = saveRoom;
 exports.roomExists = roomExists;
@@ -10,13 +9,20 @@ exports.getRoomCreator = getRoomCreator;
 exports.getRoomHistory = getRoomHistory;
 exports.getAllRooms = getAllRooms;
 exports.disconnectDB = disconnectDB;
+exports.getPrismaClient = getPrismaClient;
 const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
-exports.prisma = prisma;
+let prisma;
 async function initDB() {
     try {
+        // Create the PrismaClient here, after environment variables are loaded
+        if (!prisma) {
+            prisma = new client_1.PrismaClient({
+                log: ['error', 'warn'],
+            });
+        }
         await prisma.$connect();
-        console.log("Connected to Postgres ");
+        console.log("Connected to Postgres successfully!");
+        console.log("Database URL configured:", process.env.DATABASE_URL ? "YES" : "NO");
     }
     catch (error) {
         console.log("Error connecting to Postgres", error);
@@ -89,6 +95,14 @@ async function getAllRooms() {
 }
 // Graceful shutdown
 async function disconnectDB() {
-    await prisma.$disconnect();
+    if (prisma) {
+        await prisma.$disconnect();
+    }
+}
+function getPrismaClient() {
+    if (!prisma) {
+        throw new Error("Database not initialized. Call initDB() first.");
+    }
+    return prisma;
 }
 //# sourceMappingURL=db.js.map

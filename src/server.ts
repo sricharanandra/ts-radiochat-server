@@ -1,8 +1,9 @@
 import { WebSocketServer, WebSocket } from "ws";
 import dotenv from 'dotenv';
+
+dotenv.config();
 import crypto from "crypto";
 // Load environment variables FIRST, before any database imports
-dotenv.config();
 
 import {
     saveRoom,
@@ -27,6 +28,8 @@ async function initialize() {
         console.log("Initializing server...");
         console.log("DATABASE_URL configured:", process.env.DATABASE_URL ? "YES" : "NO");
         console.log("DATABASE_URL uses socket:", process.env.DATABASE_URL?.includes('host=/') ? "YES" : "NO");
+	console.log('DATABASE_URL:', process.env.DATABASE_URL);
+	console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('DATABASE')));
         await initDB();
         await loadExistingRooms();
         console.log("Server started successfully on port 8080.");

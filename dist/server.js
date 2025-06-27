@@ -4,16 +4,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const ws_1 = require("ws");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const crypto_1 = __importDefault(require("crypto"));
+// Load environment variables FIRST, before any database imports
 const db_1 = require("./db");
 const chatRooms = {};
 const wss = new ws_1.WebSocketServer({ port: 8080, host: '0.0.0.0' });
 const message_history_limit = 50;
 // Initialize the database and load existing rooms
 async function initialize() {
-    await (0, db_1.initDB)();
-    await loadExistingRooms();
-    console.log("Server started successfully on port 8080.");
+    try {
+        console.log("Initializing server...");
+        console.log("DATABASE_URL configured:", process.env.DATABASE_URL ? "YES" : "NO");
+        console.log("DATABASE_URL uses socket:", process.env.DATABASE_URL?.includes('host=/') ? "YES" : "NO");
+        console.log('DATABASE_URL:', process.env.DATABASE_URL);
+        console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('DATABASE')));
+        await (0, db_1.initDB)();
+        await loadExistingRooms();
+        console.log("Server started successfully on port 8080.");
+    }
+    catch (error) {
+        console.error("Failed to initialize server:", error);
+        process.exit(1);
+    }
 }
 // Load rooms from the database on startup
 async function loadExistingRooms() {

@@ -1,0 +1,634 @@
+2025-06-26T06:48:44: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-26T06:48:44: 
+2025-06-26T06:48:44: Please make sure your database server is running at `localhost:5432`.
+2025-06-26T06:48:44:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-26T06:48:44:     at async initDB (/opt/radiochat/dist/db.js:18:9)
+2025-06-26T06:48:44:     at async initialize (/opt/radiochat/dist/server.js:14:5) {
+2025-06-26T06:48:44:   clientVersion: '6.10.1',
+2025-06-26T06:48:44:   errorCode: 'P1001',
+2025-06-26T06:48:44:   retryable: undefined
+2025-06-26T06:48:44: }
+2025-06-26T06:50:16: Error handling message: PrismaClientInitializationError: 
+2025-06-26T06:50:16: Invalid `prisma.room.findUnique()` invocation:
+2025-06-26T06:50:16: 
+2025-06-26T06:50:16: 
+2025-06-26T06:50:16: Can't reach database server at `localhost:5432`
+2025-06-26T06:50:16: 
+2025-06-26T06:50:16: Please make sure your database server is running at `localhost:5432`.
+2025-06-26T06:50:16:     at Zn.handleRequestError (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:121:7759)
+2025-06-26T06:50:16:     at Zn.handleAndLogRequestError (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:121:6784)
+2025-06-26T06:50:16:     at Zn.request (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:121:6491)
+2025-06-26T06:50:16:     at async l (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:130:9778)
+2025-06-26T06:50:16:     at async roomExists (/opt/radiochat/dist/db.js:36:18)
+2025-06-26T06:50:16:     at async createRoom (/opt/radiochat/dist/server.js:70:9)
+2025-06-26T06:50:16:     at async WebSocket.<anonymous> (/opt/radiochat/dist/server.js:41:21) {
+2025-06-26T06:50:16:   clientVersion: '6.10.1',
+2025-06-26T06:50:16:   errorCode: undefined,
+2025-06-26T06:50:16:   retryable: undefined
+2025-06-26T06:50:16: }
+2025-06-26T06:50:39: Error handling message: PrismaClientInitializationError: 
+2025-06-26T06:50:39: Invalid `prisma.room.findUnique()` invocation:
+2025-06-26T06:50:39: 
+2025-06-26T06:50:39: 
+2025-06-26T06:50:39: Can't reach database server at `localhost:5432`
+2025-06-26T06:50:39: 
+2025-06-26T06:50:39: Please make sure your database server is running at `localhost:5432`.
+2025-06-26T06:50:39:     at Zn.handleRequestError (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:121:7759)
+2025-06-26T06:50:39:     at Zn.handleAndLogRequestError (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:121:6784)
+2025-06-26T06:50:39:     at Zn.request (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:121:6491)
+2025-06-26T06:50:39:     at async l (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:130:9778)
+2025-06-26T06:50:39:     at async roomExists (/opt/radiochat/dist/db.js:36:18)
+2025-06-26T06:50:39:     at async createRoom (/opt/radiochat/dist/server.js:70:9)
+2025-06-26T06:50:39:     at async WebSocket.<anonymous> (/opt/radiochat/dist/server.js:41:21) {
+2025-06-26T06:50:39:   clientVersion: '6.10.1',
+2025-06-26T06:50:39:   errorCode: undefined,
+2025-06-26T06:50:39:   retryable: undefined
+2025-06-26T06:50:39: }
+2025-06-26T06:57:21: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-26T06:57:21: 
+2025-06-26T06:57:21: Please make sure your database server is running at `localhost:5432`.
+2025-06-26T06:57:21:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-26T06:57:21:     at async initDB (/opt/radiochat/dist/db.js:18:9)
+2025-06-26T06:57:21:     at async initialize (/opt/radiochat/dist/server.js:14:5) {
+2025-06-26T06:57:21:   clientVersion: '6.10.1',
+2025-06-26T06:57:21:   errorCode: 'P1001',
+2025-06-26T06:57:21:   retryable: undefined
+2025-06-26T06:57:21: }
+2025-06-27T12:08:17: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:08:17: 
+2025-06-27T12:08:17: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:08:17:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:08:17:     at async initDB (/opt/radiochat/dist/db.js:18:9)
+2025-06-27T12:08:17:     at async initialize (/opt/radiochat/dist/server.js:14:5) {
+2025-06-27T12:08:17:   clientVersion: '6.10.1',
+2025-06-27T12:08:17:   errorCode: 'P1001',
+2025-06-27T12:08:17:   retryable: undefined
+2025-06-27T12:08:17: }
+2025-06-27T12:16:04: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:16:04: 
+2025-06-27T12:16:04: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:16:04:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:16:04:     at async initDB (/opt/radiochat/dist/db.js:18:9)
+2025-06-27T12:16:04:     at async initialize (/opt/radiochat/dist/server.js:14:5) {
+2025-06-27T12:16:04:   clientVersion: '6.10.1',
+2025-06-27T12:16:04:   errorCode: 'P1001',
+2025-06-27T12:16:04:   retryable: undefined
+2025-06-27T12:16:04: }
+2025-06-27T12:36:22: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:36:22: 
+2025-06-27T12:36:22: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:36:22:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:36:22:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:36:22:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:36:22:   clientVersion: '6.10.1',
+2025-06-27T12:36:22:   errorCode: 'P1001',
+2025-06-27T12:36:22:   retryable: undefined
+2025-06-27T12:36:22: }
+2025-06-27T12:36:31: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:36:31: 
+2025-06-27T12:36:31: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:36:31:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:36:31:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:36:31:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:36:31:   clientVersion: '6.10.1',
+2025-06-27T12:36:31:   errorCode: 'P1001',
+2025-06-27T12:36:31:   retryable: undefined
+2025-06-27T12:36:31: }
+2025-06-27T12:36:41: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:36:41: 
+2025-06-27T12:36:41: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:36:41:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:36:41:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:36:41:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:36:41:   clientVersion: '6.10.1',
+2025-06-27T12:36:41:   errorCode: 'P1001',
+2025-06-27T12:36:41:   retryable: undefined
+2025-06-27T12:36:41: }
+2025-06-27T12:36:51: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:36:51: 
+2025-06-27T12:36:51: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:36:51:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:36:51:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:36:51:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:36:51:   clientVersion: '6.10.1',
+2025-06-27T12:36:51:   errorCode: 'P1001',
+2025-06-27T12:36:51:   retryable: undefined
+2025-06-27T12:36:51: }
+2025-06-27T12:37:01: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:37:01: 
+2025-06-27T12:37:01: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:37:01:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:37:01:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:37:01:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:37:01:   clientVersion: '6.10.1',
+2025-06-27T12:37:01:   errorCode: 'P1001',
+2025-06-27T12:37:01:   retryable: undefined
+2025-06-27T12:37:01: }
+2025-06-27T12:37:11: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:37:11: 
+2025-06-27T12:37:11: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:37:11:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:37:11:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:37:11:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:37:11:   clientVersion: '6.10.1',
+2025-06-27T12:37:11:   errorCode: 'P1001',
+2025-06-27T12:37:11:   retryable: undefined
+2025-06-27T12:37:11: }
+2025-06-27T12:37:20: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:37:20: 
+2025-06-27T12:37:20: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:37:20:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565) {
+2025-06-27T12:37:20:   clientVersion: '6.10.1',
+2025-06-27T12:37:20:   errorCode: 'P1001',
+2025-06-27T12:37:20:   retryable: undefined
+2025-06-27T12:37:20: }
+2025-06-27T12:37:26: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:37:26: 
+2025-06-27T12:37:26: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:37:26:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:37:26:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:37:26:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:37:26:   clientVersion: '6.10.1',
+2025-06-27T12:37:26:   errorCode: 'P1001',
+2025-06-27T12:37:26:   retryable: undefined
+2025-06-27T12:37:26: }
+2025-06-27T12:37:36: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:37:36: 
+2025-06-27T12:37:36: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:37:36:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:37:36:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:37:36:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:37:36:   clientVersion: '6.10.1',
+2025-06-27T12:37:36:   errorCode: 'P1001',
+2025-06-27T12:37:36:   retryable: undefined
+2025-06-27T12:37:36: }
+2025-06-27T12:37:45: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:37:45: 
+2025-06-27T12:37:45: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:37:45:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:37:45:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:37:45:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:37:45:   clientVersion: '6.10.1',
+2025-06-27T12:37:45:   errorCode: 'P1001',
+2025-06-27T12:37:45:   retryable: undefined
+2025-06-27T12:37:45: }
+2025-06-27T12:37:55: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:37:55: 
+2025-06-27T12:37:55: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:37:55:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:37:55:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:37:55:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:37:55:   clientVersion: '6.10.1',
+2025-06-27T12:37:55:   errorCode: 'P1001',
+2025-06-27T12:37:55:   retryable: undefined
+2025-06-27T12:37:55: }
+2025-06-27T12:38:04: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:38:04: 
+2025-06-27T12:38:04: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:38:04:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:38:04:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:38:04:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:38:04:   clientVersion: '6.10.1',
+2025-06-27T12:38:04:   errorCode: 'P1001',
+2025-06-27T12:38:04:   retryable: undefined
+2025-06-27T12:38:04: }
+2025-06-27T12:38:14: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:38:14: 
+2025-06-27T12:38:14: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:38:14:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:38:14:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:38:14:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:38:14:   clientVersion: '6.10.1',
+2025-06-27T12:38:14:   errorCode: 'P1001',
+2025-06-27T12:38:14:   retryable: undefined
+2025-06-27T12:38:14: }
+2025-06-27T12:38:24: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:38:24: 
+2025-06-27T12:38:24: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:38:24:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:38:24:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:38:24:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:38:24:   clientVersion: '6.10.1',
+2025-06-27T12:38:24:   errorCode: 'P1001',
+2025-06-27T12:38:24:   retryable: undefined
+2025-06-27T12:38:24: }
+2025-06-27T12:38:33: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:38:33: 
+2025-06-27T12:38:33: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:38:33:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:38:33:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:38:33:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:38:33:   clientVersion: '6.10.1',
+2025-06-27T12:38:33:   errorCode: 'P1001',
+2025-06-27T12:38:33:   retryable: undefined
+2025-06-27T12:38:33: }
+2025-06-27T12:38:43: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:38:43: 
+2025-06-27T12:38:43: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:38:43:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:38:43:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:38:43:     at async initialize (/opt/radiochat/dist/server.js:19:9) {
+2025-06-27T12:38:43:   clientVersion: '6.10.1',
+2025-06-27T12:38:43:   errorCode: 'P1001',
+2025-06-27T12:38:43:   retryable: undefined
+2025-06-27T12:38:43: }
+2025-06-27T12:40:11: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:40:11: 
+2025-06-27T12:40:11: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:40:11:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:40:11:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:40:11:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:40:11:   clientVersion: '6.10.1',
+2025-06-27T12:40:11:   errorCode: 'P1001',
+2025-06-27T12:40:11:   retryable: undefined
+2025-06-27T12:40:11: }
+2025-06-27T12:40:21: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:40:21: 
+2025-06-27T12:40:21: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:40:21:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:40:21:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:40:21:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:40:21:   clientVersion: '6.10.1',
+2025-06-27T12:40:21:   errorCode: 'P1001',
+2025-06-27T12:40:21:   retryable: undefined
+2025-06-27T12:40:21: }
+2025-06-27T12:40:31: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:40:31: 
+2025-06-27T12:40:31: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:40:31:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:40:31:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:40:31:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:40:31:   clientVersion: '6.10.1',
+2025-06-27T12:40:31:   errorCode: 'P1001',
+2025-06-27T12:40:31:   retryable: undefined
+2025-06-27T12:40:31: }
+2025-06-27T12:40:40: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:40:40: 
+2025-06-27T12:40:40: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:40:40:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:40:40:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:40:40:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:40:40:   clientVersion: '6.10.1',
+2025-06-27T12:40:40:   errorCode: 'P1001',
+2025-06-27T12:40:40:   retryable: undefined
+2025-06-27T12:40:40: }
+2025-06-27T12:40:50: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:40:50: 
+2025-06-27T12:40:50: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:40:50:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:40:50:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:40:50:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:40:50:   clientVersion: '6.10.1',
+2025-06-27T12:40:50:   errorCode: 'P1001',
+2025-06-27T12:40:50:   retryable: undefined
+2025-06-27T12:40:50: }
+2025-06-27T12:40:59: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:40:59: 
+2025-06-27T12:40:59: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:40:59:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:40:59:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:40:59:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:40:59:   clientVersion: '6.10.1',
+2025-06-27T12:40:59:   errorCode: 'P1001',
+2025-06-27T12:40:59:   retryable: undefined
+2025-06-27T12:40:59: }
+2025-06-27T12:41:09: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:41:09: 
+2025-06-27T12:41:09: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:41:09:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:41:09:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:41:09:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:41:09:   clientVersion: '6.10.1',
+2025-06-27T12:41:09:   errorCode: 'P1001',
+2025-06-27T12:41:09:   retryable: undefined
+2025-06-27T12:41:09: }
+2025-06-27T12:41:19: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:41:19: 
+2025-06-27T12:41:19: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:41:19:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:41:19:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:41:19:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:41:19:   clientVersion: '6.10.1',
+2025-06-27T12:41:19:   errorCode: 'P1001',
+2025-06-27T12:41:19:   retryable: undefined
+2025-06-27T12:41:19: }
+2025-06-27T12:41:28: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:41:28: 
+2025-06-27T12:41:28: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:41:28:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:41:28:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:41:28:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:41:28:   clientVersion: '6.10.1',
+2025-06-27T12:41:28:   errorCode: 'P1001',
+2025-06-27T12:41:28:   retryable: undefined
+2025-06-27T12:41:28: }
+2025-06-27T12:41:38: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:41:38: 
+2025-06-27T12:41:38: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:41:38:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:41:38:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:41:38:     at async initialize (/opt/radiochat/dist/server.js:21:9) {
+2025-06-27T12:41:38:   clientVersion: '6.10.1',
+2025-06-27T12:41:38:   errorCode: 'P1001',
+2025-06-27T12:41:38:   retryable: undefined
+2025-06-27T12:41:38: }
+2025-06-27T12:47:35: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:47:35: 
+2025-06-27T12:47:35: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:47:35:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:47:35:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:47:35:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:47:35:   clientVersion: '6.10.1',
+2025-06-27T12:47:35:   errorCode: 'P1001',
+2025-06-27T12:47:35:   retryable: undefined
+2025-06-27T12:47:35: }
+2025-06-27T12:47:44: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:47:44: 
+2025-06-27T12:47:44: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:47:44:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:47:44:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:47:44:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:47:44:   clientVersion: '6.10.1',
+2025-06-27T12:47:44:   errorCode: 'P1001',
+2025-06-27T12:47:44:   retryable: undefined
+2025-06-27T12:47:44: }
+2025-06-27T12:47:54: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:47:54: 
+2025-06-27T12:47:54: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:47:54:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:47:54:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:47:54:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:47:54:   clientVersion: '6.10.1',
+2025-06-27T12:47:54:   errorCode: 'P1001',
+2025-06-27T12:47:54:   retryable: undefined
+2025-06-27T12:47:54: }
+2025-06-27T12:48:03: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:48:03: 
+2025-06-27T12:48:03: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:48:03:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:48:03:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:48:03:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:48:03:   clientVersion: '6.10.1',
+2025-06-27T12:48:03:   errorCode: 'P1001',
+2025-06-27T12:48:03:   retryable: undefined
+2025-06-27T12:48:03: }
+2025-06-27T12:48:13: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:48:13: 
+2025-06-27T12:48:13: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:48:13:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:48:13:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:48:13:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:48:13:   clientVersion: '6.10.1',
+2025-06-27T12:48:13:   errorCode: 'P1001',
+2025-06-27T12:48:13:   retryable: undefined
+2025-06-27T12:48:13: }
+2025-06-27T12:48:23: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:48:23: 
+2025-06-27T12:48:23: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:48:23:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:48:23:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:48:23:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:48:23:   clientVersion: '6.10.1',
+2025-06-27T12:48:23:   errorCode: 'P1001',
+2025-06-27T12:48:23:   retryable: undefined
+2025-06-27T12:48:23: }
+2025-06-27T12:48:32: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:48:32: 
+2025-06-27T12:48:32: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:48:32:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:48:32:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:48:32:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:48:32:   clientVersion: '6.10.1',
+2025-06-27T12:48:32:   errorCode: 'P1001',
+2025-06-27T12:48:32:   retryable: undefined
+2025-06-27T12:48:32: }
+2025-06-27T12:48:42: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:48:42: 
+2025-06-27T12:48:42: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:48:42:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:48:42:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:48:42:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:48:42:   clientVersion: '6.10.1',
+2025-06-27T12:48:42:   errorCode: 'P1001',
+2025-06-27T12:48:42:   retryable: undefined
+2025-06-27T12:48:42: }
+2025-06-27T12:48:51: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:48:51: 
+2025-06-27T12:48:51: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:48:51:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:48:51:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:48:51:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:48:51:   clientVersion: '6.10.1',
+2025-06-27T12:48:51:   errorCode: 'P1001',
+2025-06-27T12:48:51:   retryable: undefined
+2025-06-27T12:48:51: }
+2025-06-27T12:49:01: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:49:01: 
+2025-06-27T12:49:01: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:49:01:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:49:01:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:49:01:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:49:01:   clientVersion: '6.10.1',
+2025-06-27T12:49:01:   errorCode: 'P1001',
+2025-06-27T12:49:01:   retryable: undefined
+2025-06-27T12:49:01: }
+2025-06-27T12:56:17: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:56:17: 
+2025-06-27T12:56:17: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:56:17:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:56:17:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:56:17:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:56:17:   clientVersion: '6.10.1',
+2025-06-27T12:56:17:   errorCode: 'P1001',
+2025-06-27T12:56:17:   retryable: undefined
+2025-06-27T12:56:17: }
+2025-06-27T12:56:27: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:56:27: 
+2025-06-27T12:56:27: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:56:27:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:56:27:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:56:27:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:56:27:   clientVersion: '6.10.1',
+2025-06-27T12:56:27:   errorCode: 'P1001',
+2025-06-27T12:56:27:   retryable: undefined
+2025-06-27T12:56:27: }
+2025-06-27T12:56:36: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:56:36: 
+2025-06-27T12:56:36: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:56:36:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:56:36:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:56:36:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:56:36:   clientVersion: '6.10.1',
+2025-06-27T12:56:36:   errorCode: 'P1001',
+2025-06-27T12:56:36:   retryable: undefined
+2025-06-27T12:56:36: }
+2025-06-27T12:56:46: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:56:46: 
+2025-06-27T12:56:46: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:56:46:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:56:46:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:56:46:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:56:46:   clientVersion: '6.10.1',
+2025-06-27T12:56:46:   errorCode: 'P1001',
+2025-06-27T12:56:46:   retryable: undefined
+2025-06-27T12:56:46: }
+2025-06-27T12:56:55: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:56:55: 
+2025-06-27T12:56:55: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:56:55:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:56:55:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:56:55:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:56:55:   clientVersion: '6.10.1',
+2025-06-27T12:56:55:   errorCode: 'P1001',
+2025-06-27T12:56:55:   retryable: undefined
+2025-06-27T12:56:55: }
+2025-06-27T12:57:05: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:57:05: 
+2025-06-27T12:57:05: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:57:05:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:57:05:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:57:05:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:57:05:   clientVersion: '6.10.1',
+2025-06-27T12:57:05:   errorCode: 'P1001',
+2025-06-27T12:57:05:   retryable: undefined
+2025-06-27T12:57:05: }
+2025-06-27T12:57:15: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:57:15: 
+2025-06-27T12:57:15: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:57:15:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:57:15:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:57:15:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:57:15:   clientVersion: '6.10.1',
+2025-06-27T12:57:15:   errorCode: 'P1001',
+2025-06-27T12:57:15:   retryable: undefined
+2025-06-27T12:57:15: }
+2025-06-27T12:57:24: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:57:24: 
+2025-06-27T12:57:24: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:57:24:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:57:24:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:57:24:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:57:24:   clientVersion: '6.10.1',
+2025-06-27T12:57:24:   errorCode: 'P1001',
+2025-06-27T12:57:24:   retryable: undefined
+2025-06-27T12:57:24: }
+2025-06-27T12:57:34: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:57:34: 
+2025-06-27T12:57:34: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:57:34:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:57:34:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:57:34:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:57:34:   clientVersion: '6.10.1',
+2025-06-27T12:57:34:   errorCode: 'P1001',
+2025-06-27T12:57:34:   retryable: undefined
+2025-06-27T12:57:34: }
+2025-06-27T12:57:43: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T12:57:43: 
+2025-06-27T12:57:43: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T12:57:43:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T12:57:43:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T12:57:43:     at async initialize (/opt/radiochat/dist/server.js:22:9) {
+2025-06-27T12:57:43:   clientVersion: '6.10.1',
+2025-06-27T12:57:43:   errorCode: 'P1001',
+2025-06-27T12:57:43:   retryable: undefined
+2025-06-27T12:57:43: }
+2025-06-27T13:00:40: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:00:40: 
+2025-06-27T13:00:40: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:00:40:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:00:40:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:00:40:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:00:40:   clientVersion: '6.10.1',
+2025-06-27T13:00:40:   errorCode: 'P1001',
+2025-06-27T13:00:40:   retryable: undefined
+2025-06-27T13:00:40: }
+2025-06-27T13:00:49: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:00:49: 
+2025-06-27T13:00:49: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:00:49:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:00:49:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:00:49:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:00:49:   clientVersion: '6.10.1',
+2025-06-27T13:00:49:   errorCode: 'P1001',
+2025-06-27T13:00:49:   retryable: undefined
+2025-06-27T13:00:49: }
+2025-06-27T13:00:59: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:00:59: 
+2025-06-27T13:00:59: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:00:59:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:00:59:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:00:59:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:00:59:   clientVersion: '6.10.1',
+2025-06-27T13:00:59:   errorCode: 'P1001',
+2025-06-27T13:00:59:   retryable: undefined
+2025-06-27T13:00:59: }
+2025-06-27T13:01:09: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:01:09: 
+2025-06-27T13:01:09: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:01:09:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:01:09:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:01:09:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:01:09:   clientVersion: '6.10.1',
+2025-06-27T13:01:09:   errorCode: 'P1001',
+2025-06-27T13:01:09:   retryable: undefined
+2025-06-27T13:01:09: }
+2025-06-27T13:01:18: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:01:18: 
+2025-06-27T13:01:18: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:01:18:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:01:18:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:01:18:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:01:18:   clientVersion: '6.10.1',
+2025-06-27T13:01:18:   errorCode: 'P1001',
+2025-06-27T13:01:18:   retryable: undefined
+2025-06-27T13:01:18: }
+2025-06-27T13:01:28: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:01:28: 
+2025-06-27T13:01:28: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:01:28:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:01:28:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:01:28:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:01:28:   clientVersion: '6.10.1',
+2025-06-27T13:01:28:   errorCode: 'P1001',
+2025-06-27T13:01:28:   retryable: undefined
+2025-06-27T13:01:28: }
+2025-06-27T13:01:37: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:01:37: 
+2025-06-27T13:01:37: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:01:37:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:01:37:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:01:37:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:01:37:   clientVersion: '6.10.1',
+2025-06-27T13:01:37:   errorCode: 'P1001',
+2025-06-27T13:01:37:   retryable: undefined
+2025-06-27T13:01:37: }
+2025-06-27T13:01:47: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:01:47: 
+2025-06-27T13:01:47: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:01:47:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:01:47:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:01:47:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:01:47:   clientVersion: '6.10.1',
+2025-06-27T13:01:47:   errorCode: 'P1001',
+2025-06-27T13:01:47:   retryable: undefined
+2025-06-27T13:01:47: }
+2025-06-27T13:01:57: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:01:57: 
+2025-06-27T13:01:57: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:01:57:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:01:57:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:01:57:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:01:57:   clientVersion: '6.10.1',
+2025-06-27T13:01:57:   errorCode: 'P1001',
+2025-06-27T13:01:57:   retryable: undefined
+2025-06-27T13:01:57: }
+2025-06-27T13:02:06: Failed to initialize server: PrismaClientInitializationError: Can't reach database server at `localhost:5432`
+2025-06-27T13:02:06: 
+2025-06-27T13:02:06: Please make sure your database server is running at `localhost:5432`.
+2025-06-27T13:02:06:     at r (/opt/radiochat/node_modules/@prisma/client/runtime/library.js:112:2565)
+2025-06-27T13:02:06:     at async initDB (/opt/radiochat/dist/db.js:23:9)
+2025-06-27T13:02:06:     at async initialize (/opt/radiochat/dist/server.js:23:9) {
+2025-06-27T13:02:06:   clientVersion: '6.10.1',
+2025-06-27T13:02:06:   errorCode: 'P1001',
+2025-06-27T13:02:06:   retryable: undefined
+2025-06-27T13:02:06: }
