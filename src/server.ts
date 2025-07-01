@@ -110,7 +110,7 @@ async function handleLogin(payload: any, ws: WebSocket) {
     if (!user || !await bcrypt.compare(password, user.password)) {
         return sendError(ws, "Invalid username or password.");
     }
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET!, { expiresIn: '7d' });
     ws.send(JSON.stringify({ type: "loggedIn", payload: { token } }));
 }
 
