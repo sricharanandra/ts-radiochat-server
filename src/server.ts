@@ -213,7 +213,7 @@ async function verifyToken(token: string, ws: WebSocket): Promise<AuthenticatedU
         return null;
     }
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: string, username: string };
+        const decoded = jwt.verify(token, JWT_SECRET!) as { id: string, username: string };
         return { id: decoded.id, username: decoded.username, ws };
     } catch (error) {
         sendError(ws, "Invalid or expired token. Please log in again.");
