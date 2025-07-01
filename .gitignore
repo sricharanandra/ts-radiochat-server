@@ -47,7 +47,6 @@ Thumbs.db
 
 # Prisma
 .env
-prisma/migrations/**/migration.sql
 
 # Test and development files
 test-*.ts
