@@ -1,90 +1,83 @@
 import { WebSocketServer, WebSocket } from "ws";
 import dotenv from 'dotenv';
-
 dotenv.config();
-import crypto from "crypto";
-// Load environment variables FIRST, before any database imports
 
-import {
-    saveRoom,
-    roomExists,
-    appendMessage,
-    deleteRoom as deleteStoredRoom,
-    getRoomCreator,
-    getRoomHistory,
-    getAllRooms,
-    initDB,
-    disconnectDB
-} from "./db";
-import { ChatRoom, User, StoredRoom } from "./types";
+import crypto from "crypto";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
+import * as db from "./db";
+import { AuthenticatedUser, ChatRoom, MessageWithAuthor } from "./types";
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    console.error("FATAL: JWT_SECRET is not defined in the environment variables.");
+    process.exit(1);
+}
 
 const chatRooms: Record<string, ChatRoom> = {};
 const wss = new WebSocketServer({ port: 8080, host: '0.0.0.0' });
-const message_history_limit = 50;
 
-// Initialize the database and load existing rooms
+// Map to track which user is associated with which WebSocket connection
+const connectedUsers = new Map<WebSocket, AuthenticatedUser>();
+
 async function initialize() {
     try {
         console.log("Initializing server...");
-        console.log("DATABASE_URL configured:", process.env.DATABASE_URL ? "YES" : "NO");
-        console.log("DATABASE_URL uses socket:", process.env.DATABASE_URL?.includes('host=/') ? "YES" : "NO");
-	console.log('DATABASE_URL:', process.env.DATABASE_URL);
-	console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('DATABASE')));
-        await initDB();
-        await loadExistingRooms();
+        db.initDB();
         console.log("Server started successfully on port 8080.");
     } catch (error) {
         console.error("Failed to initialize server:", error);
         process.exit(1);
     }
 }
-// Load rooms from the database on startup
-async function loadExistingRooms() {
-    const storedRooms = await getAllRooms();
-    console.log(`Loading ${storedRooms.length} existing rooms from database`);
 
-    storedRooms.forEach(room => {
-        // Create in-memory representation with empty users list
-        chatRooms[room.id] = {
-            id: room.id,
-            creator: { username: room.creator, ws: null as unknown as WebSocket },
-            users: [],
-            pendingRequests: [],
-            messageHistory: [...room.messageHistory]
-        };
-    });
-}
-
-// Start the server
 initialize();
 
 wss.on("connection", (ws: WebSocket) => {
     ws.on("message", async (data: string) => {
         try {
             const message = JSON.parse(data);
+            const { type, payload } = message;
 
-            switch (message.type) {
+            // Non-authenticated routes
+            if (type === "register") {
+                await handleRegister(payload, ws);
+                return;
+            }
+            if (type === "login") {
+                await handleLogin(payload, ws);
+                return;
+            }
+
+            // All routes below require authentication
+            const user = await verifyToken(payload.token, ws);
+            if (!user) return; // verifyToken sends error response
+
+            // Associate ws with authenticated user for this session
+            if (!connectedUsers.has(ws)) {
+                connectedUsers.set(ws, { ...user, ws });
+            }
+
+            switch (type) {
                 case "createRoom":
-                    await createRoom(message.payload.username, ws);
+                    await handleCreateRoom(user, payload, ws);
                     break;
                 case "joinRoom":
-                    await joinRoom(message.payload.username, message.payload.roomId, ws);
-                    break;
-                case "approveJoin":
-                    approveJoinRequest(message.payload.roomId, message.payload.username);
+                    await handleJoinRoom(user, payload, ws);
                     break;
                 case "message":
-                    await broadcastMessage(message.payload.roomId, message.payload.sender, message.payload.message);
+                    await handleMessage(user, payload, ws);
                     break;
                 case "command":
-                    await handleClientCommand(message.payload.command, message.payload.sender, ws, message.payload.roomId);
+                    await handleCommand(user, payload, ws);
                     break;
                 default:
-                    ws.send(JSON.stringify({ type: "error", payload: "Invalid request type." }));
+                    sendError(ws, "Invalid request type.");
             }
         } catch (err) {
             console.error("Error handling message:", err);
-            ws.send(JSON.stringify({ type: "error", payload: "Invalid message format." }));
+            sendError(ws, "Invalid message format.");
         }
     });
 
@@ -93,255 +86,167 @@ wss.on("connection", (ws: WebSocket) => {
     });
 });
 
-async function createRoom(username: string, ws: WebSocket) {
-    const roomId = generateRoomId();
+// --- Handlers ---
 
-    if (await roomExists(roomId)) {
-        ws.send(JSON.stringify({ type: "error", payload: "Room ID collision, try again." }));
-        return;
+async function handleRegister(payload: any, ws: WebSocket) {
+    const { username, password } = payload;
+    if (!username || !password) {
+        return sendError(ws, "Username and password are required.");
     }
+    if (await db.findUserByUsername(username)) {
+        return sendError(ws, "Username is already taken.");
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await db.createUser(username, hashedPassword);
+    ws.send(JSON.stringify({ type: "registered", payload: { message: `User ${newUser.username} created successfully. Please log in.` } }));
+}
 
-    const newRoom: ChatRoom = {
+async function handleLogin(payload: any, ws: WebSocket) {
+    const { username, password } = payload;
+    if (!username || !password) {
+        return sendError(ws, "Username and password are required.");
+    }
+    const user = await db.findUserByUsername(username);
+    if (!user || !await bcrypt.compare(password, user.password)) {
+        return sendError(ws, "Invalid username or password.");
+    }
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+    ws.send(JSON.stringify({ type: "loggedIn", payload: { token } }));
+}
+
+async function handleCreateRoom(user: AuthenticatedUser, payload: any, ws: WebSocket) {
+    const { name } = payload;
+    if (!name) return sendError(ws, "Room name is required.");
+
+    const roomId = generateRoomId();
+    const newDbRoom = await db.createRoom(roomId, name, user.id);
+
+    chatRooms[roomId] = {
         id: roomId,
-        creator: { username, ws },
-        users: [{ username, ws }],
-        pendingRequests: [],
-        messageHistory: [],
+        name: newDbRoom.name,
+        creatorId: newDbRoom.creatorId,
+        users: [{ ...user, ws }],
     };
 
-    chatRooms[roomId] = newRoom;
-    await saveRoom(roomId, username); // Store just the username as creator
-
-    ws.send(JSON.stringify({ type: "roomCreated", payload: { roomId } }));
-    console.log(`Room ${roomId} created by ${username}.`);
+    ws.send(JSON.stringify({ type: "roomCreated", payload: { roomId, name } }));
+    console.log(`Room "${name}" (${roomId}) created by ${user.username}.`);
 }
 
-async function joinRoom(username: string, roomId: string, ws: WebSocket) {
-    // First check if the room exists in the database
-    if (!(await roomExists(roomId))) {
-        ws.send(JSON.stringify({ type: "error", payload: "Room does not exist." }));
-        return;
-    }
+async function handleJoinRoom(user: AuthenticatedUser, payload: any, ws: WebSocket) {
+    const { roomId } = payload;
+    const room = await db.findRoomById(roomId);
+    if (!room) return sendError(ws, "Room not found.");
 
-    // Create the room in memory if it's not already there
+    // Add user to room in DB
+    await db.addUserToRoom(roomId, user.id);
+
+    // Add user to in-memory room, or create it if it's not active
     if (!chatRooms[roomId]) {
-        const creator = await getRoomCreator(roomId);
-        const history = await getRoomHistory(roomId);
-
-        chatRooms[roomId] = {
-            id: roomId,
-            creator: { username: creator || "unknown", ws: null as unknown as WebSocket },
-            users: [],
-            pendingRequests: [],
-            messageHistory: [...history]
-        };
+        chatRooms[roomId] = { id: roomId, name: room.name, creatorId: room.creatorId, users: [] };
     }
 
-    const room = chatRooms[roomId];
-
-    if (room.users.some(user => user.username === username)) {
-        ws.send(JSON.stringify({ type: "error", payload: "Username already exists in this room." }));
-        return;
+    // Prevent duplicate users in memory
+    if (!chatRooms[roomId].users.some(u => u.id === user.id)) {
+        chatRooms[roomId].users.push({ ...user, ws });
     }
 
-    // Update creator's websocket if they're rejoining
-    if (room.creator.username === username) {
-        room.creator.ws = ws;
-    }
+    ws.send(JSON.stringify({ type: "joinedRoom", payload: { roomId, name: room.name } }));
 
-    room.pendingRequests.push({ username, ws });
+    // Send message history
+    const history = await db.getMessageHistory(roomId);
+    ws.send(JSON.stringify({ type: "history", payload: { roomId, messages: history.reverse() } }));
 
-    // If no users in room (everyone left but room persists), auto-approve the first person
-    if (room.users.length === 0) {
-        approveJoinRequest(roomId, username);
+    broadcast(roomId, { type: "userJoined", payload: { username: user.username } }, user.id);
+    console.log(`${user.username} joined room ${roomId}`);
+}
+
+async function handleMessage(user: AuthenticatedUser, payload: any, ws: WebSocket) {
+    const { roomId, content } = payload;
+    if (!chatRooms[roomId] || !content) return;
+
+    const message = await db.createMessage(roomId, user.id, content);
+    broadcast(roomId, { type: "message", payload: message });
+}
+
+async function handleCommand(user: AuthenticatedUser, payload: any, ws: WebSocket) {
+    const { roomId, command } = payload;
+    if (command === "/delete-room") {
+        const room = await db.findRoomById(roomId);
+        if (!room) return sendError(ws, "Room not found.");
+        if (room.creatorId !== user.id) return sendError(ws, "Only the room creator can delete it.");
+
+        broadcast(roomId, { type: "roomDeleted", payload: { message: `Room ${room.name} is being deleted by the creator.` } });
+        await db.deleteRoom(roomId);
+        delete chatRooms[roomId];
+        console.log(`Room ${roomId} deleted by ${user.username}`);
     } else {
-        promptNextJoinRequest(room);
+        sendError(ws, "Unknown command.");
     }
-
-    console.log(`${username} requested to join room ${roomId}.`);
-}
-
-function promptNextJoinRequest(room: ChatRoom) {
-    if (room.pendingRequests.length > 0 && room.users.length > 0) {
-        // If creator is in the room, send request to them
-        const creatorInRoom = room.users.find(user => user.username === room.creator.username);
-        if (creatorInRoom) {
-            const nextRequest = room.pendingRequests[0];
-            creatorInRoom.ws.send(JSON.stringify({
-                type: "joinRequest",
-                payload: { username: nextRequest.username },
-            }));
-        } else {
-            // If creator is not in room but others are, send to first user
-            const nextRequest = room.pendingRequests[0];
-            room.users[0].ws.send(JSON.stringify({
-                type: "joinRequest",
-                payload: { username: nextRequest.username },
-            }));
-        }
-    }
-}
-
-function approveJoinRequest(roomId: string, username: string) {
-    const room = chatRooms[roomId];
-    if (!room) return;
-
-    const requestIndex = room.pendingRequests.findIndex((user) => user.username === username);
-    if (requestIndex !== -1) {
-        const approvedUser = room.pendingRequests.splice(requestIndex, 1)[0];
-        room.users.push(approvedUser);
-
-        approvedUser.ws.send(JSON.stringify({
-            type: "joinApproved",
-            payload: { roomId },
-        }));
-
-        // Send room history to the new user
-        sendRoomHistory(approvedUser.ws, room);
-
-        broadcastMessage(roomId, "Server", `${username} has joined the room.`);
-        console.log(`${username} has been admitted to room ${roomId}.`);
-
-        promptNextJoinRequest(room);
-    }
-}
-
-function sendRoomHistory(ws: WebSocket, room: ChatRoom) {
-    if (room.messageHistory.length > 0) {
-        ws.send(JSON.stringify({
-            type: "message",
-            payload: {
-                sender: "Server",
-                message: "--- Chat History ---"
-            }
-        }));
-
-        room.messageHistory.forEach(message => {
-            ws.send(JSON.stringify({
-                type: "message",
-                payload: {
-                    sender: "History",
-                    message
-                }
-            }));
-        });
-
-        ws.send(JSON.stringify({
-            type: "message",
-            payload: {
-                sender: "Server",
-                message: "--- End of History ---"
-            }
-        }));
-    }
-}
-
-async function broadcastMessage(roomId: string, sender: string, message: string) {
-    const room = chatRooms[roomId];
-    if (!room) return;
-
-    const formattedMessage = `${sender}: ${message}`;
-    room.messageHistory.push(formattedMessage);
-
-    // Persist message in database
-    await appendMessage(roomId, formattedMessage);
-
-    if (room.messageHistory.length > message_history_limit) {
-        room.messageHistory.shift();
-    }
-
-    room.users.forEach((user) => {
-        user.ws.send(JSON.stringify({
-            type: "message",
-            payload: { sender, message: formattedMessage },
-        }));
-    });
 }
 
 function handleDisconnection(ws: WebSocket) {
+    const user = connectedUsers.get(ws);
+    if (!user) return;
+
+    connectedUsers.delete(ws);
     for (const roomId in chatRooms) {
         const room = chatRooms[roomId];
-        const userIndex = room.users.findIndex((user) => user.ws === ws);
-
+        const userIndex = room.users.findIndex((u) => u.id === user.id);
         if (userIndex !== -1) {
-            const user = room.users.splice(userIndex, 1)[0];
-            broadcastMessage(roomId, "Server", `${user.username} has left the room.`);
-
-            // If this was the creator, update their websocket to null
-            if (room.creator.username === user.username) {
-                room.creator.ws = null as unknown as WebSocket;
+            room.users.splice(userIndex, 1);
+            broadcast(roomId, { type: "userLeft", payload: { username: user.username } });
+            console.log(`${user.username} left room ${roomId}.`);
+            // If room is empty in memory, remove it to save resources
+            if (room.users.length === 0) {
+                delete chatRooms[roomId];
+                console.log(`Deactivating empty room ${roomId} from memory.`);
             }
-
-            // We don't delete the room even if empty now - it persists
-            console.log(`${user.username} left room ${roomId}. Room persists with ${room.users.length} active users.`);
-            return;
         }
     }
 }
 
-async function handleClientCommand(command: string, sender: string, ws: WebSocket, roomId: string) {
-    if (command === "/delete-room") {
-        // Get the room creator from the database for verification
-        const creatorUsername = await getRoomCreator(roomId);
+// --- Utility Functions ---
 
-        // Only the original creator can delete the room
-        if (!creatorUsername || creatorUsername !== sender) {
-            ws.send(JSON.stringify({
-                type: "error",
-                payload: "Only the room creator can delete the room.",
-            }));
-            return;
-        }
-
-        const room = chatRooms[roomId];
-        if (room) {
-            room.users.forEach((user) => {
-                user.ws.send(JSON.stringify({
-                    type: "message",
-                    payload: {
-                        sender: "Server",
-                        message: `Room ${roomId} is being deleted by the admin.`,
-                    },
-                }));
-            });
-        }
-
-        // Delete from memory and database
-        delete chatRooms[roomId];
-        await deleteStoredRoom(roomId);
-
-        console.log(`Room ${roomId} deleted by admin ${sender}`);
-
-        ws.send(JSON.stringify({
-            type: "message",
-            payload: {
-                sender: "Server",
-                message: `Room ${roomId} successfully deleted.`,
-            },
-        }));
-    } else {
-        ws.send(JSON.stringify({
-            type: "error",
-            payload: "Unknown command. Available commands: /delete-room"
-        }));
+async function verifyToken(token: string, ws: WebSocket): Promise<AuthenticatedUser | null> {
+    if (!token) {
+        sendError(ws, "Authentication token is required.");
+        return null;
     }
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: string, username: string };
+        return { id: decoded.id, username: decoded.username, ws };
+    } catch (error) {
+        sendError(ws, "Invalid or expired token. Please log in again.");
+        return null;
+    }
+}
+
+function broadcast(roomId: string, message: object, excludeUserId?: string) {
+    const room = chatRooms[roomId];
+    if (!room) return;
+    const data = JSON.stringify(message);
+    room.users.forEach((user) => {
+        if (user.id !== excludeUserId && user.ws.readyState === WebSocket.OPEN) {
+            user.ws.send(data);
+        }
+    });
+}
+
+function sendError(ws: WebSocket, message: string) {
+    ws.send(JSON.stringify({ type: "error", payload: { message } }));
 }
 
 function generateRoomId(): string {
-    return crypto.randomBytes(4).toString("hex").slice(0, 7);
+    return crypto.randomBytes(4).toString("hex");
 }
 
-
-// PRISMA RELATED
-// Add graceful shutdown handling
-process.on('SIGINT', async () => {
-    console.log('Received SIGINT, shutting down gracefully...');
-    await disconnectDB();
-    process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-    console.log('Received SIGTERM, shutting down gracefully...');
-    await disconnectDB();
-    process.exit(0);
-});
+// Graceful shutdown
+const shutdown = async () => {
+    console.log('Shutting down gracefully...');
+    await db.disconnectDB();
+    wss.close(() => {
+        process.exit(0);
+    });
+};
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
