@@ -126,6 +126,7 @@ async function handleCreateRoom(user: AuthenticatedUser, payload: any, ws: WebSo
         name: newDbRoom.name,
         creatorId: newDbRoom.creatorId,
         users: [{ ...user, ws }],
+        pendingJoins: [],
     };
 
     ws.send(JSON.stringify({ type: "roomCreated", payload: { roomId, name } }));
@@ -137,28 +138,46 @@ async function handleJoinRoom(user: AuthenticatedUser, payload: any, ws: WebSock
     const room = await db.findRoomById(roomId);
     if (!room) return sendError(ws, "Room not found.");
 
-    // Add user to room in DB
-    await db.addUserToRoom(roomId, user.id);
-
-    // Add user to in-memory room, or create it if it's not active
+    // If room is not active in memory, load it
     if (!chatRooms[roomId]) {
-        chatRooms[roomId] = { id: roomId, name: room.name, creatorId: room.creatorId, users: [] };
+        chatRooms[roomId] = { id: roomId, name: room.name, creatorId: room.creatorId, users: [], pendingJoins: [] };
+    }
+    const activeRoom = chatRooms[roomId];
+
+    // Creator can always join immediately
+    if (user.id === activeRoom.creatorId) {
+        if (!activeRoom.users.some(u => u.id === user.id)) {
+            await db.addUserToRoom(roomId, user.id);
+            activeRoom.users.push({ ...user, ws });
+        }
+        ws.send(JSON.stringify({ type: "joinedRoom", payload: { roomId, name: room.name } }));
+        const history = await db.getMessageHistory(roomId);
+        ws.send(JSON.stringify({ type: "history", payload: { roomId, messages: history.reverse() } }));
+        broadcast(roomId, { type: "userJoined", payload: { username: user.username } }, user.id);
+        console.log(`${user.username} (creator) joined room ${roomId}`);
+        return;
     }
 
-    // Prevent duplicate users in memory
-    if (!chatRooms[roomId].users.some(u => u.id === user.id)) {
-        chatRooms[roomId].users.push({ ...user, ws });
+    // Check if user is already in the room or pending
+    if (activeRoom.users.some(u => u.id === user.id) || activeRoom.pendingJoins.some(u => u.id === user.id)) {
+        return sendError(ws, "You are already in this room or your request is pending.");
     }
 
-    ws.send(JSON.stringify({ type: "joinedRoom", payload: { roomId, name: room.name } }));
+    const creator = activeRoom.users.find(u => u.id === activeRoom.creatorId);
+    if (!creator || creator.ws.readyState !== WebSocket.OPEN) {
+        return sendError(ws, "The room creator is currently offline and cannot approve requests.");
+    }
 
-    // Send message history
-    const history = await db.getMessageHistory(roomId);
-    ws.send(JSON.stringify({ type: "history", payload: { roomId, messages: history.reverse() } }));
+    activeRoom.pendingJoins.push({ ...user, ws });
+    ws.send(JSON.stringify({ type: "joinRequestSent", payload: { message: "Your request to join has been sent to the room creator." } }));
 
-    broadcast(roomId, { type: "userJoined", payload: { username: user.username } }, user.id);
-    console.log(`${user.username} joined room ${roomId}`);
+    // If this is the first request in the queue, notify the creator immediately
+    if (activeRoom.pendingJoins.length === 1) {
+        creator.ws.send(JSON.stringify({ type: "joinRequest", payload: { username: user.username } }));
+    }
+    console.log(`User ${user.username} requested to join room ${roomId}. Request queued.`);
 }
+
 
 async function handleMessage(user: AuthenticatedUser, payload: any, ws: WebSocket) {
     const { roomId, content } = payload;
@@ -170,17 +189,60 @@ async function handleMessage(user: AuthenticatedUser, payload: any, ws: WebSocke
 
 async function handleCommand(user: AuthenticatedUser, payload: any, ws: WebSocket) {
     const { roomId, command } = payload;
-    if (command === "/delete-room") {
-        const room = await db.findRoomById(roomId);
-        if (!room) return sendError(ws, "Room not found.");
-        if (room.creatorId !== user.id) return sendError(ws, "Only the room creator can delete it.");
+    const room = chatRooms[roomId];
 
+    if (!room) return sendError(ws, "Room not found or not active.");
+
+    const isCreator = user.id === room.creatorId;
+
+    if (command === "/delete-room") {
+        if (!isCreator) return sendError(ws, "Only the room creator can delete it.");
         broadcast(roomId, { type: "roomDeleted", payload: { message: `Room ${room.name} is being deleted by the creator.` } });
         await db.deleteRoom(roomId);
         delete chatRooms[roomId];
         console.log(`Room ${roomId} deleted by ${user.username}`);
+        return;
     } else {
         sendError(ws, "Unknown command.");
+    }
+    // --- Approval Commands (Creator Only) ---
+    if (!isCreator) {
+        return sendError(ws, "You do not have permission to run this command.");
+    }
+
+    const commandAction = command.split(" ")[0];
+
+    if (commandAction === "/approve") {
+        if (room.pendingJoins.length === 0) return sendError(ws, "There are no pending join requests.");
+
+        const userToApprove = room.pendingJoins.shift()!;
+        await db.addUserToRoom(roomId, userToApprove.id);
+        room.users.push(userToApprove);
+
+        userToApprove.ws.send(JSON.stringify({ type: "joinApproved", payload: { roomId: room.id, name: room.name } }));
+        const history = await db.getMessageHistory(roomId);
+        userToApprove.ws.send(JSON.stringify({ type: "history", payload: { roomId, messages: history.reverse() } }));
+
+        broadcast(roomId, { type: "userJoined", payload: { username: userToApprove.username } });
+        ws.send(JSON.stringify({ type: "info", payload: { message: `You approved ${userToApprove.username}.` } }));
+        console.log(`Creator ${user.username} approved ${userToApprove.username} for room ${roomId}.`);
+
+    } else if (commandAction === "/reject") {
+        if (room.pendingJoins.length === 0) return sendError(ws, "There are no pending join requests.");
+
+        const userToReject = room.pendingJoins.shift()!;
+        userToReject.ws.send(JSON.stringify({ type: "joinRejected", payload: { message: "Your request to join the room was rejected by the creator." } }));
+        ws.send(JSON.stringify({ type: "info", payload: { message: `You rejected ${userToReject.username}.` } }));
+        console.log(`Creator ${user.username} rejected ${userToReject.username} for room ${roomId}.`);
+    } else {
+        sendError(ws, "Unknown command.");
+        return; // Return to avoid running the next-request check on unknown commands
+    }
+
+    // After handling a request, check if there's another one and notify the creator
+    if (room.pendingJoins.length > 0) {
+        const nextUser = room.pendingJoins[0];
+        ws.send(JSON.stringify({ type: "joinRequest", payload: { username: nextUser.username } }));
     }
 }
 

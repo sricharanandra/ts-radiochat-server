@@ -13,6 +13,7 @@ export type ChatRoom = {
     name: string;
     creatorId: string;
     users: AuthenticatedUser[];
+    pendingJoins: AuthenticatedUser[];
     // We no longer store message history in memory; we fetch it from DB
 };
 export type MessageWithAuthor = Message & {
