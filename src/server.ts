@@ -195,16 +195,6 @@ async function handleCommand(user: AuthenticatedUser, payload: any, ws: WebSocke
 
     const isCreator = user.id === room.creatorId;
 
-    if (command === "/delete-room") {
-        if (!isCreator) return sendError(ws, "Only the room creator can delete it.");
-        broadcast(roomId, { type: "roomDeleted", payload: { message: `Room ${room.name} is being deleted by the creator.` } });
-        await db.deleteRoom(roomId);
-        delete chatRooms[roomId];
-        console.log(`Room ${roomId} deleted by ${user.username}`);
-        return;
-    } else {
-        sendError(ws, "Unknown command.");
-    }
     // --- Approval Commands (Creator Only) ---
     if (!isCreator) {
         return sendError(ws, "You do not have permission to run this command.");
@@ -212,7 +202,14 @@ async function handleCommand(user: AuthenticatedUser, payload: any, ws: WebSocke
 
     const commandAction = command.split(" ")[0];
 
-    if (commandAction === "/approve") {
+    if (command === "/delete-room") {
+        if (!isCreator) return sendError(ws, "Only the room creator can delete it.");
+        broadcast(roomId, { type: "roomDeleted", payload: { message: `Room ${room.name} is being deleted by the creator.` } });
+        await db.deleteRoom(roomId);
+        delete chatRooms[roomId];
+        console.log(`Room ${roomId} deleted by ${user.username}`);
+
+    } else if (commandAction === "/approve") {
         if (room.pendingJoins.length === 0) return sendError(ws, "There are no pending join requests.");
 
         const userToApprove = room.pendingJoins.shift()!;
