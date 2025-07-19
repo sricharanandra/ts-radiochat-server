@@ -106,6 +106,21 @@ export async function getMessageHistory(roomId: string, limit: number = 50): Pro
         }
     });
 }
+
+export async function getUserRooms(userId: string) {
+    return prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+            rooms: {
+                select: {
+                    id: true,
+                    name: true,
+                    createdAt: true,
+                }
+            }
+        }
+    });
+}
 // Graceful shutdown
 export async function disconnectDB() {
     if (prisma) {

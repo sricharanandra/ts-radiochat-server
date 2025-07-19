@@ -72,6 +72,9 @@ wss.on("connection", (ws: WebSocket) => {
                 case "command":
                     await handleCommand(user, payload, ws);
                     break;
+                case "getUserRooms":
+                    await handleGetUserRooms(user, ws);
+                    break;
                 default:
                     sendError(ws, "Invalid request type.");
             }
@@ -262,6 +265,20 @@ function handleDisconnection(ws: WebSocket) {
             }
         }
     }
+}
+
+async function handleGetUserRooms(user: AuthenticatedUser, ws: WebSocket) {
+    const userWithRooms = await db.getUserRooms(user.id);
+    if (!userWithRooms) {
+        return sendError(ws, "User not found.");
+    }
+
+    ws.send(JSON.stringify({
+        type: "userRooms",
+        payload: {
+            rooms: userWithRooms.rooms
+        }
+    }));
 }
 
 // --- Utility Functions ---
