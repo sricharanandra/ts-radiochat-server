@@ -1,23 +1,22 @@
 import { WebSocket } from "ws";
-import { Room, User as DbUser, Message } from "@prisma/client";
 
-// Represents a user connected to the server via WebSocket
-export type AuthenticatedUser = {
-    id: string;
+export interface ConnectedUser {
     username: string;
     ws: WebSocket;
-};
-// In-memory representation of an active chat room
-export type ChatRoom = {
+    currentRoom: string | null;
+}
+
+export interface ChatRoom {
     id: string;
     name: string;
-    creatorId: string;
-    users: AuthenticatedUser[];
-    pendingJoins: AuthenticatedUser[];
-    // We no longer store message history in memory; we fetch it from DB
-};
-export type MessageWithAuthor = Message & {
-    author: {
-        username: string;
-    };
-};
+    creator: string;
+    users: ConnectedUser[];
+    messages: Message[];
+}
+
+export interface Message {
+    id: string;
+    username: string;
+    content: string;
+    timestamp: string;
+}
