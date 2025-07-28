@@ -17,6 +17,6 @@ export interface ChatRoom {
 export interface Message {
     id: string;
     username: string;
-    content: string;
+    ciphertext: string;
     timestamp: string;
 }
