@@ -6,17 +6,14 @@ import { ChatRoom, ConnectedUser } from "./types";
 
 const chatRooms: Record<string, ChatRoom> = {};
 const wss = new WebSocketServer({ port: 8080, host: '0.0.0.0' });
-
-// Map to track which user is associated with which WebSocket connection
 const connectedUsers = new Map<WebSocket, ConnectedUser>();
 
-console.log("🚀 RadioChat Server starting...");
-console.log("📡 WebSocket server listening on port 8080");
+console.log("RadioChat Server starting...");
+console.log("WebSocket server listening on port 8080");
 
 wss.on("connection", (ws: WebSocket) => {
-    console.log("👤 New client connected");
+    console.log("New client connected");
 
-    // Auto-assign a random username to new connections
     const randomUsername = `User_${crypto.randomBytes(4).toString('hex')}`;
     const user: ConnectedUser = {
         username: randomUsername,
@@ -24,15 +21,20 @@ wss.on("connection", (ws: WebSocket) => {
         currentRoom: null
     };
     connectedUsers.set(ws, user);
-    console.log(`👤 Auto-assigned username: ${randomUsername}`);
+    console.log(`Auto-assigned username: ${randomUsername}`);
 
     ws.on("message", async (data: string) => {
         try {
-            console.log("📥 Received raw message:", data);
+            console.log("Received raw message:", data);
             const message = JSON.parse(data);
-            console.log("📋 Parsed message:", message);
+            console.log("Parsed message:", JSON.stringify(message, null, 2));
 
             const { typ, payload } = message;
+
+            if (!typ) {
+                console.error("Message missing 'typ' field");
+                return sendError(ws, "Message missing type field");
+            }
 
             switch (typ) {
                 case "joinRoom":
@@ -42,19 +44,19 @@ wss.on("connection", (ws: WebSocket) => {
                     handleSendMessage(payload, ws);
                     break;
                 default:
-                    console.error(`❌ Unknown message type: ${typ}`);
+                    console.error(`Unknown message type: ${typ}`);
                     sendError(ws, `Unknown message type: ${typ}`);
             }
         } catch (error) {
-            console.error("❌ Error parsing message:", error);
-            console.error("❌ Raw data was:", data);
+            console.error("Error parsing message:", error);
+            console.error("Raw data was:", data);
             sendError(ws, "Invalid message format");
         }
     });
 
     ws.on("close", () => {
         handleDisconnect(ws);
-        console.log("👤 Client disconnected");
+        console.log("Client disconnected");
     });
 
     ws.on("error", (error) => {
@@ -68,14 +70,13 @@ function handleJoinRoom(payload: any, ws: WebSocket) {
         return sendError(ws, "User not found");
     }
 
-    console.log("🚪 Join room payload:", payload);
-    const { room_id } = payload;
+    console.log("Join room payload:", JSON.stringify(payload, null, 2));
+    const room_id = payload?.room_id || payload;
 
     if (!room_id) {
         return sendError(ws, "Room ID is required");
     }
 
-    // If room doesn't exist, create it
     if (!chatRooms[room_id]) {
         const room: ChatRoom = {
             id: room_id,
@@ -85,45 +86,37 @@ function handleJoinRoom(payload: any, ws: WebSocket) {
             messages: []
         };
         chatRooms[room_id] = room;
-        console.log(`🏠 Room created: ${room.name} (${room_id})`);
+        console.log(`Room created: ${room.name} (${room_id})`);
     }
 
     const room = chatRooms[room_id];
 
-    // Check if user is already in the room
     const isAlreadyInRoom = room.users.some(u => u.username === user.username);
-    if (isAlreadyInRoom) {
-        console.log(`👤 ${user.username} already in room ${room_id}`);
-        // Still send the confirmation
-    } else {
-        // Leave current room if in one
+    if (!isAlreadyInRoom) {
         if (user.currentRoom) {
             leaveCurrentRoom(user);
         }
 
-        // Join new room
         room.users.push(user);
         user.currentRoom = room_id;
 
-        // Notify other users
         broadcast(room_id, {
             typ: "userJoined",
             payload: { username: user.username }
         }, ws);
     }
 
-    // Send join confirmation (client expects this format)
     const joinResponse = {
         typ: "roomJoined",
         payload: {
             room_id,
-            messages: room.messages.slice(-50) // Last 50 messages
+            messages: room.messages.slice(-50)
         }
     };
-    console.log("📤 Sending join response:", joinResponse);
+    console.log("Sending join response:", JSON.stringify(joinResponse, null, 2));
     ws.send(JSON.stringify(joinResponse));
 
-    console.log(`👤 ${user.username} joined room ${room.name} (${room_id})`);
+    console.log(`${user.username} joined room ${room.name} (${room_id})`);
 }
 
 function handleSendMessage(payload: any, ws: WebSocket) {
@@ -136,10 +129,9 @@ function handleSendMessage(payload: any, ws: WebSocket) {
         return sendError(ws, "You must be in a room to send messages");
     }
 
-    console.log("💬 Send message payload:", payload);
+    console.log("Send message payload:", JSON.stringify(payload, null, 2));
     const { room_id, ciphertext } = payload;
 
-    // Verify the room_id matches current room
     if (room_id !== user.currentRoom) {
         return sendError(ws, "Room mismatch");
     }
@@ -152,21 +144,20 @@ function handleSendMessage(payload: any, ws: WebSocket) {
     const messageObj = {
         id: crypto.randomUUID(),
         username: user.username,
-        ciphertext: ciphertext, // Use 'ciphertext' field to match client expectations
+        ciphertext: ciphertext,
         timestamp: new Date().toISOString()
     };
 
     room.messages.push(messageObj);
 
-    // Broadcast message to all users in the room
     const messageResponse = {
         typ: "message",
         payload: messageObj
     };
-    console.log("📤 Broadcasting message:", messageResponse);
+    console.log("Broadcasting message:", JSON.stringify(messageResponse, null, 2));
     broadcast(user.currentRoom, messageResponse);
 
-    console.log(`💬 [${room.name}] ${user.username}: [encrypted message]`);
+    console.log(`[${room.name}] ${user.username}: [encrypted message]`);
 }
 
 function handleDisconnect(ws: WebSocket) {
@@ -184,19 +175,16 @@ function leaveCurrentRoom(user: ConnectedUser) {
 
     const room = chatRooms[user.currentRoom];
     if (room) {
-        // Remove user from room
         room.users = room.users.filter(u => u.username !== user.username);
 
-        // Notify other users
         broadcast(user.currentRoom, {
             typ: "userLeft",
             payload: { username: user.username }
         }, user.ws);
 
-        // If room is empty, clean it up
         if (room.users.length === 0) {
             delete chatRooms[user.currentRoom];
-            console.log(`🗑️ Room ${room.name} (${user.currentRoom}) deleted - no users remaining`);
+            console.log(`Room ${room.name} (${user.currentRoom}) deleted - no users remaining`);
         }
     }
 
@@ -220,23 +208,22 @@ function sendError(ws: WebSocket, message: string) {
         typ: "error",
         payload: { message }
     };
-    console.log("❌ Sending error:", errorResponse);
+    console.log("Sending error:", JSON.stringify(errorResponse, null, 2));
     ws.send(JSON.stringify(errorResponse));
 }
 
-// Graceful shutdown
 process.on('SIGINT', () => {
-    console.log('\n🛑 Shutting down server...');
+    console.log('\nShutting down server...');
     wss.close(() => {
-        console.log('✅ Server shutdown complete');
+        console.log('Server shutdown complete');
         process.exit(0);
     });
 });
 
 process.on('SIGTERM', () => {
-    console.log('\n🛑 Shutting down server...');
+    console.log('\nShutting down server...');
     wss.close(() => {
-        console.log('✅ Server shutdown complete');
+        console.log('Server shutdown complete');
         process.exit(0);
     });
 });
