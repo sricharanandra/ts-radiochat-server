@@ -16,29 +16,30 @@ console.log("📡 WebSocket server listening on port 8080");
 wss.on("connection", (ws: WebSocket) => {
     console.log("👤 New client connected");
     
+    // Auto-assign a random username to new connections
+    const randomUsername = `User_${crypto.randomBytes(4).toString('hex')}`;
+    const user: ConnectedUser = {
+        username: randomUsername,
+        ws,
+        currentRoom: null
+    };
+    connectedUsers.set(ws, user);
+    console.log(`👤 Auto-assigned username: ${randomUsername}`);
+    
     ws.on("message", async (data: string) => {
         try {
             const message = JSON.parse(data);
-            const { type, payload } = message;
+            const { typ, payload } = message; // Note: client uses 'typ' not 'type'
             
-            switch (type) {
-                case "setUsername":
-                    handleSetUsername(payload, ws);
-                    break;
-                case "createRoom":
-                    handleCreateRoom(payload, ws);
-                    break;
+            switch (typ) {
                 case "joinRoom":
                     handleJoinRoom(payload, ws);
                     break;
-                case "sendMessage":
+                case "message":
                     handleSendMessage(payload, ws);
                     break;
-                case "leaveRoom":
-                    handleLeaveRoom(ws);
-                    break;
                 default:
-                    sendError(ws, `Unknown message type: ${type}`);
+                    sendError(ws, `Unknown message type: ${typ}`);
             }
         } catch (error) {
             console.error("Error parsing message:", error);
@@ -56,69 +57,28 @@ wss.on("connection", (ws: WebSocket) => {
     });
 });
 
-function handleSetUsername(payload: any, ws: WebSocket) {
-    const { username } = payload;
-    if (!username || typeof username !== 'string' || username.trim().length === 0) {
-        return sendError(ws, "Valid username is required");
-    }
-    
-    const user: ConnectedUser = {
-        username: username.trim(),
-        ws,
-        currentRoom: null
-    };
-    
-    connectedUsers.set(ws, user);
-    ws.send(JSON.stringify({ 
-        type: "usernameSet", 
-        payload: { username: user.username } 
-    }));
-    console.log(`👤 User set username: ${user.username}`);
-}
-
-function handleCreateRoom(payload: any, ws: WebSocket) {
-    const user = connectedUsers.get(ws);
-    if (!user) {
-        return sendError(ws, "Please set username first");
-    }
-    
-    const { roomName } = payload;
-    if (!roomName || typeof roomName !== 'string' || roomName.trim().length === 0) {
-        return sendError(ws, "Valid room name is required");
-    }
-    
-    const roomId = generateRoomId();
-    const room: ChatRoom = {
-        id: roomId,
-        name: roomName.trim(),
-        creator: user.username,
-        users: [user],
-        messages: []
-    };
-    
-    chatRooms[roomId] = room;
-    user.currentRoom = roomId;
-    
-    ws.send(JSON.stringify({
-        type: "roomCreated",
-        payload: { roomId, roomName: room.name }
-    }));
-    
-    console.log(`🏠 Room created: ${room.name} (${roomId}) by ${user.username}`);
-}
-
 function handleJoinRoom(payload: any, ws: WebSocket) {
     const user = connectedUsers.get(ws);
     if (!user) {
-        return sendError(ws, "Please set username first");
+        return sendError(ws, "User not found");
     }
     
-    const { roomId } = payload;
-    const room = chatRooms[roomId];
+    const { room_id } = payload; // Client sends 'room_id' not 'roomId'
     
-    if (!room) {
-        return sendError(ws, "Room not found");
+    // If room doesn't exist, create it
+    if (!chatRooms[room_id]) {
+        const room: ChatRoom = {
+            id: room_id,
+            name: `Room ${room_id}`,
+            creator: user.username,
+            users: [],
+            messages: []
+        };
+        chatRooms[room_id] = room;
+        console.log(`🏠 Room created: ${room.name} (${room_id})`);
     }
+    
+    const room = chatRooms[room_id];
     
     // Check if user is already in the room
     const isAlreadyInRoom = room.users.some(u => u.username === user.username);
@@ -133,40 +93,41 @@ function handleJoinRoom(payload: any, ws: WebSocket) {
     
     // Join new room
     room.users.push(user);
-    user.currentRoom = roomId;
+    user.currentRoom = room_id;
     
-    // Send room history to new user
+    // Send join confirmation (client expects this format)
     ws.send(JSON.stringify({
-        type: "roomJoined",
+        typ: "roomJoined",
         payload: { 
-            roomId, 
-            roomName: room.name,
+            room_id,
             messages: room.messages.slice(-50) // Last 50 messages
         }
     }));
     
     // Notify other users
-    broadcast(roomId, {
-        type: "userJoined",
+    broadcast(room_id, {
+        typ: "userJoined",
         payload: { username: user.username }
     }, ws);
     
-    console.log(`👤 ${user.username} joined room ${room.name} (${roomId})`);
+    console.log(`👤 ${user.username} joined room ${room.name} (${room_id})`);
 }
 
 function handleSendMessage(payload: any, ws: WebSocket) {
     const user = connectedUsers.get(ws);
     if (!user) {
-        return sendError(ws, "Please set username first");
+        return sendError(ws, "User not found");
     }
     
     if (!user.currentRoom) {
         return sendError(ws, "You must be in a room to send messages");
     }
     
-    const { message } = payload;
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-        return sendError(ws, "Message cannot be empty");
+    const { room_id, ciphertext } = payload; // Client sends encrypted message as 'ciphertext'
+    
+    // Verify the room_id matches current room
+    if (room_id !== user.currentRoom) {
+        return sendError(ws, "Room mismatch");
     }
     
     const room = chatRooms[user.currentRoom];
@@ -177,29 +138,19 @@ function handleSendMessage(payload: any, ws: WebSocket) {
     const messageObj = {
         id: crypto.randomUUID(),
         username: user.username,
-        content: message.trim(),
+        content: ciphertext, // Store the encrypted message as-is
         timestamp: new Date().toISOString()
     };
     
     room.messages.push(messageObj);
     
-    // Broadcast message to all users in the room
+    // Broadcast message to all users in the room (client expects 'typ' not 'type')
     broadcast(user.currentRoom, {
-        type: "message",
+        typ: "message",
         payload: messageObj
     });
     
-    console.log(`💬 [${room.name}] ${user.username}: ${message.trim()}`);
-}
-
-function handleLeaveRoom(ws: WebSocket) {
-    const user = connectedUsers.get(ws);
-    if (!user || !user.currentRoom) {
-        return sendError(ws, "You are not in a room");
-    }
-    
-    leaveCurrentRoom(user);
-    ws.send(JSON.stringify({ type: "leftRoom", payload: {} }));
+    console.log(`[${room.name}] ${user.username}: [encrypted message]`);
 }
 
 function handleDisconnect(ws: WebSocket) {
@@ -222,14 +173,14 @@ function leaveCurrentRoom(user: ConnectedUser) {
         
         // Notify other users
         broadcast(user.currentRoom, {
-            type: "userLeft",
+            typ: "userLeft",
             payload: { username: user.username }
         }, user.ws);
         
         // If room is empty, clean it up
         if (room.users.length === 0) {
             delete chatRooms[user.currentRoom];
-            console.log(`🗑️  Room ${room.name} (${user.currentRoom}) deleted - no users remaining`);
+            console.log(`️ Room ${room.name} (${user.currentRoom}) deleted - no users remaining`);
         }
     }
     
@@ -250,28 +201,24 @@ function broadcast(roomId: string, message: any, excludeWs?: WebSocket) {
 
 function sendError(ws: WebSocket, message: string) {
     ws.send(JSON.stringify({
-        type: "error",
+        typ: "error", // Client expects 'typ' not 'type'
         payload: { message }
     }));
 }
 
-function generateRoomId(): string {
-    return crypto.randomBytes(3).toString('hex').toUpperCase();
-}
-
 // Graceful shutdown
 process.on('SIGINT', () => {
-    console.log('\n🛑 Shutting down server...');
+    console.log('\nShutting down server...');
     wss.close(() => {
-        console.log('✅ Server shutdown complete');
+        console.log(' Server shutdown complete');
         process.exit(0);
     });
 });
 
 process.on('SIGTERM', () => {
-    console.log('\n🛑 Shutting down server...');
+    console.log('\n Shutting down server...');
     wss.close(() => {
-        console.log('✅ Server shutdown complete');
+        console.log(' Server shutdown complete');
         process.exit(0);
     });
 });
