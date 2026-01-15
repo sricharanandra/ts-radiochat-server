@@ -1,229 +1,572 @@
 import { WebSocketServer, WebSocket } from "ws";
+import { createServer } from "http";
 import dotenv from 'dotenv';
+import { v4 as uuidv4 } from 'uuid';
+import { prisma } from './database';
+import { verifyToken } from './auth';
+import api from './api';
+import {
+  ConnectedUser,
+  ActiveRoom,
+  ClientMessage,
+  ServerMessage,
+  JoinRoomPayload,
+  SendMessagePayload,
+  CreateRoomPayload,
+  LeaveRoomPayload,
+  ListRoomsPayload,
+  BaseMessage,
+} from './types';
+import crypto from 'crypto';
+
+// Load environment variables
 dotenv.config();
-import crypto from "crypto";
-import { ChatRoom, ConnectedUser } from "./types";
 
-const chatRooms: Record<string, ChatRoom> = {};
-const wss = new WebSocketServer({ port: 8080, host: '0.0.0.0' });
+const PORT = parseInt(process.env.PORT || '8080');
+const HOST = process.env.HOST || '0.0.0.0';
+
+// ============================================================================
+// SERVER STATE
+// ============================================================================
+
 const connectedUsers = new Map<WebSocket, ConnectedUser>();
+const activeRooms = new Map<string, ActiveRoom>();
 
-console.log("RadioChat Server starting...");
-console.log("WebSocket server listening on port 8080");
+// ============================================================================
+// HTTP + WEBSOCKET SERVER
+// ============================================================================
 
-wss.on("connection", (ws: WebSocket) => {
-    console.log("New client connected");
+// Create HTTP server for both API and WebSocket
+const httpServer = createServer(api);
 
-    const randomUsername = `User_${crypto.randomBytes(4).toString('hex')}`;
-    const user: ConnectedUser = {
-        username: randomUsername,
-        ws,
-        currentRoom: null
-    };
-    connectedUsers.set(ws, user);
-    console.log(`Auto-assigned username: ${randomUsername}`);
-
-    ws.on("message", async (data: string) => {
-        try {
-            console.log("Received raw message:", data);
-            const message = JSON.parse(data);
-            console.log("Parsed message:", JSON.stringify(message, null, 2));
-
-            const { typ, payload } = message;
-
-            if (!typ) {
-                console.error("Message missing 'typ' field");
-                return sendError(ws, "Message missing type field");
-            }
-
-            switch (typ) {
-                case "joinRoom":
-                    handleJoinRoom(payload, ws);
-                    break;
-                case "message":
-                    handleSendMessage(payload, ws);
-                    break;
-                default:
-                    console.error(`Unknown message type: ${typ}`);
-                    sendError(ws, `Unknown message type: ${typ}`);
-            }
-        } catch (error) {
-            console.error("Error parsing message:", error);
-            console.error("Raw data was:", data);
-            sendError(ws, "Invalid message format");
-        }
-    });
-
-    ws.on("close", () => {
-        handleDisconnect(ws);
-        console.log("Client disconnected");
-    });
-
-    ws.on("error", (error) => {
-        console.error("WebSocket error:", error);
-    });
+// Create WebSocket server
+const wss = new WebSocketServer({ 
+  server: httpServer,
+  path: '/ws',
 });
 
-function handleJoinRoom(payload: any, ws: WebSocket) {
-    const user = connectedUsers.get(ws);
-    if (!user) {
+console.log("=====================================================");
+console.log("🚀 RadioChat Server Starting...");
+console.log("=====================================================");
+
+// ============================================================================
+// WEBSOCKET CONNECTION HANDLER
+// ============================================================================
+
+wss.on("connection", async (ws: WebSocket, request) => {
+  console.log(`[WS] New client connected from ${request.socket.remoteAddress}`);
+
+  // Parse token from query string
+  const url = new URL(request.url || '', `http://${request.headers.host}`);
+  const token = url.searchParams.get('token');
+
+  let user: ConnectedUser | null = null;
+
+  // If token provided, verify it
+  if (token) {
+    const payload = verifyToken(token);
+    if (payload) {
+      user = {
+        userId: payload.userId,
+        username: payload.username,
+        ws,
+        currentRoomId: null,
+        isAuthenticated: true,
+      };
+      console.log(`[AUTH] User authenticated: ${user.username} (${user.userId})`);
+    } else {
+      console.log('[AUTH] Invalid token provided');
+    }
+  }
+
+  // If no valid authentication, create guest user in database
+  if (!user) {
+    const guestUsername = `Guest_${Math.random().toString(36).substring(7)}`;
+    
+    // Create guest user in database
+    const dbUser = await prisma.user.create({
+      data: {
+        username: guestUsername,
+      },
+    });
+    
+    user = {
+      userId: dbUser.id,
+      username: dbUser.username,
+      ws,
+      currentRoomId: null,
+      isAuthenticated: false,
+    };
+    console.log(`[AUTH] Guest user created: ${guestUsername} (${dbUser.id})`);
+  }
+
+  connectedUsers.set(ws, user);
+
+  // Send welcome message
+  sendMessage(ws, {
+    type: "info",
+    payload: {
+      message: `Welcome ${user.username}! You are ${user.isAuthenticated ? 'authenticated' : 'connected as guest'}.`,
+    },
+  });
+
+  // ============================================================================
+  // MESSAGE HANDLER
+  // ============================================================================
+
+  ws.on("message", async (data: Buffer) => {
+    try {
+      const messageText = data.toString();
+      console.log(`[WS] ← Received from ${user?.username}:`, messageText);
+
+      const message: ClientMessage = JSON.parse(messageText);
+
+      if (!message.type) {
+        return sendError(ws, "Message missing 'type' field");
+      }
+
+      const currentUser = connectedUsers.get(ws);
+      if (!currentUser) {
         return sendError(ws, "User not found");
+      }
+
+      // Handle different message types
+      switch (message.type) {
+        case "joinRoom":
+          await handleJoinRoom(currentUser, message.payload);
+          break;
+
+        case "sendMessage":
+          await handleSendMessage(currentUser, message.payload);
+          break;
+
+        case "createRoom":
+          await handleCreateRoom(currentUser, message.payload);
+          break;
+
+        case "leaveRoom":
+          await handleLeaveRoom(currentUser, message.payload);
+          break;
+
+        case "listRooms":
+          await handleListRooms(currentUser, message.payload);
+          break;
+
+        default:
+          console.error(`[WS] Unknown message type: ${(message as any).type}`);
+          sendError(ws, `Unknown message type: ${(message as any).type}`);
+      }
+    } catch (error: any) {
+      console.error("[WS] Error parsing message:", error);
+      sendError(ws, "Invalid message format");
     }
+  });
 
-    console.log("Join room payload:", JSON.stringify(payload, null, 2));
-    const room_id = payload?.room_id || payload;
+  // ============================================================================
+  // DISCONNECT HANDLER
+  // ============================================================================
 
-    if (!room_id) {
-        return sendError(ws, "Room ID is required");
-    }
-
-    if (!chatRooms[room_id]) {
-        const room: ChatRoom = {
-            id: room_id,
-            name: `Room ${room_id}`,
-            creator: user.username,
-            users: [],
-            messages: []
-        };
-        chatRooms[room_id] = room;
-        console.log(`Room created: ${room.name} (${room_id})`);
-    }
-
-    const room = chatRooms[room_id];
-
-    const isAlreadyInRoom = room.users.some(u => u.username === user.username);
-    if (!isAlreadyInRoom) {
-        if (user.currentRoom) {
-            leaveCurrentRoom(user);
-        }
-
-        room.users.push(user);
-        user.currentRoom = room_id;
-
-        broadcast(room_id, {
-            typ: "userJoined",
-            payload: { username: user.username }
-        }, ws);
-    }
-
-    const joinResponse = {
-        typ: "roomJoined",
-        payload: {
-            room_id,
-            messages: room.messages.slice(-50)
-        }
-    };
-    console.log("Sending join response:", JSON.stringify(joinResponse, null, 2));
-    ws.send(JSON.stringify(joinResponse));
-
-    console.log(`${user.username} joined room ${room.name} (${room_id})`);
-}
-
-function handleSendMessage(payload: any, ws: WebSocket) {
-    const user = connectedUsers.get(ws);
-    if (!user) {
-        return sendError(ws, "User not found");
-    }
-
-    if (!user.currentRoom) {
-        return sendError(ws, "You must be in a room to send messages");
-    }
-
-    console.log("Send message payload:", JSON.stringify(payload, null, 2));
-    const { room_id, ciphertext } = payload;
-
-    if (room_id !== user.currentRoom) {
-        return sendError(ws, "Room mismatch");
-    }
-
-    const room = chatRooms[user.currentRoom];
-    if (!room) {
-        return sendError(ws, "Room not found");
-    }
-
-    const messageObj = {
-        id: crypto.randomUUID(),
-        username: user.username,
-        ciphertext: ciphertext,
-        timestamp: new Date().toISOString()
-    };
-
-    room.messages.push(messageObj);
-
-    const messageResponse = {
-        typ: "message",
-        payload: messageObj
-    };
-    console.log("Broadcasting message:", JSON.stringify(messageResponse, null, 2));
-    broadcast(user.currentRoom, messageResponse);
-
-    console.log(`[${room.name}] ${user.username}: [encrypted message]`);
-}
-
-function handleDisconnect(ws: WebSocket) {
+  ws.on("close", () => {
     const user = connectedUsers.get(ws);
     if (user) {
-        if (user.currentRoom) {
-            leaveCurrentRoom(user);
-        }
-        connectedUsers.delete(ws);
+      console.log(`[WS] User disconnected: ${user.username}`);
+      handleDisconnect(user);
+      connectedUsers.delete(ws);
     }
+  });
+
+  ws.on("error", (error) => {
+    console.error("[WS] WebSocket error:", error);
+  });
+});
+
+// ============================================================================
+// MESSAGE HANDLERS
+// ============================================================================
+
+async function handleJoinRoom(user: ConnectedUser, payload: JoinRoomPayload) {
+  const { roomId, roomName } = payload;
+
+  if (!roomId && !roomName) {
+    return sendError(user.ws, "Room ID or room name is required");
+  }
+
+  console.log(`[ROOM] ${user.username} attempting to join room: ${roomId || roomName}`);
+
+  // Check if room exists in database (by ID or name)
+  const room = await prisma.room.findFirst({
+    where: {
+      OR: [
+        roomId ? { id: roomId } : {},
+        roomName ? { name: roomName } : {},
+      ],
+      deletedAt: null,
+    },
+    include: {
+      messages: {
+        include: {
+          sender: {
+            select: { username: true },
+          },
+        },
+        orderBy: { createdAt: 'asc' },
+        take: 50,
+      },
+      members: {
+        where: { userId: user.userId },
+      },
+    },
+  });
+
+  if (!room) {
+    return sendError(user.ws, "Room not found");
+  }
+
+  // Check if room is private and user is not a member
+  if (room.roomType === 'private' && room.members.length === 0) {
+    return sendError(user.ws, "You don't have access to this private room");
+  }
+
+  // Leave current room if in one
+  if (user.currentRoomId) {
+    await handleLeaveRoom(user, { roomId: user.currentRoomId });
+  }
+
+  // Add user to room membership in database
+  await prisma.roomMember.upsert({
+    where: {
+      roomId_userId: {
+        roomId: room.id,
+        userId: user.userId,
+      },
+    },
+    create: {
+      roomId: room.id,
+      userId: user.userId,
+    },
+    update: {},
+  });
+
+  // Create or get active room
+  let activeRoom = activeRooms.get(room.id);
+  if (!activeRoom) {
+    activeRoom = {
+      id: room.id,
+      name: room.name,
+      displayName: room.displayName,
+      roomType: room.roomType,
+      encryptedKey: room.encryptedKey || '',
+      users: [],
+    };
+    activeRooms.set(room.id, activeRoom);
+  }
+
+  // Add user to active room
+  if (!activeRoom.users.find(u => u.userId === user.userId)) {
+    activeRoom.users.push(user);
+  }
+  user.currentRoomId = room.id;
+
+  // Send room joined confirmation with message history and encryption key
+  const messages = room.messages.map(m => ({
+    id: m.id,
+    username: m.sender.username,
+    ciphertext: m.ciphertext,
+    timestamp: m.createdAt.toISOString(),
+  }));
+
+  sendMessage(user.ws, {
+    type: "roomJoined",
+    payload: {
+      roomId: room.id,
+      roomName: room.name,
+      displayName: room.displayName,
+      roomType: room.roomType,
+      encryptedKey: room.encryptedKey || '',
+      messages,
+    },
+  });
+
+  // Broadcast to others in room
+  broadcastToRoom(room.id, {
+    type: "userJoined",
+    payload: {
+      username: user.username,
+      userId: user.userId,
+    },
+  }, user.ws);
+
+  console.log(`[ROOM] ${user.username} joined room: ${room.displayName} (${room.id})`);
 }
 
-function leaveCurrentRoom(user: ConnectedUser) {
-    if (!user.currentRoom) return;
+async function handleSendMessage(user: ConnectedUser, payload: SendMessagePayload) {
+  const { roomId, ciphertext } = payload;
 
-    const room = chatRooms[user.currentRoom];
-    if (room) {
-        room.users = room.users.filter(u => u.username !== user.username);
+  if (!user.currentRoomId || user.currentRoomId !== roomId) {
+    return sendError(user.ws, "You must be in the room to send messages");
+  }
 
-        broadcast(user.currentRoom, {
-            typ: "userLeft",
-            payload: { username: user.username }
-        }, user.ws);
+  if (!ciphertext) {
+    return sendError(user.ws, "Message content is required");
+  }
 
-        if (room.users.length === 0) {
-            delete chatRooms[user.currentRoom];
-            console.log(`Room ${room.name} (${user.currentRoom}) deleted - no users remaining`);
-        }
-    }
+  console.log(`[MSG] ${user.username} sending message to room ${roomId}`);
 
-    user.currentRoom = null;
+  // Save message to database
+  const message = await prisma.message.create({
+    data: {
+      roomId,
+      senderId: user.userId,
+      ciphertext,
+    },
+  });
+
+  // Broadcast to all users in room
+  const messagePayload = {
+    id: message.id,
+    username: user.username,
+    ciphertext: message.ciphertext,
+    timestamp: message.createdAt.toISOString(),
+  };
+
+  broadcastToRoom(roomId, {
+    type: "message",
+    payload: messagePayload,
+  });
+
+  console.log(`[MSG] Message ${message.id} broadcast to room ${roomId}`);
 }
 
-function broadcast(roomId: string, message: any, excludeWs?: WebSocket) {
-    const room = chatRooms[roomId];
-    if (!room) return;
+async function handleCreateRoom(user: ConnectedUser, payload: CreateRoomPayload) {
+  const { name, displayName, roomType } = payload;
 
-    const messageStr = JSON.stringify(message);
-    room.users.forEach(user => {
-        if (user.ws !== excludeWs && user.ws.readyState === WebSocket.OPEN) {
-            user.ws.send(messageStr);
-        }
+  if (!name) {
+    return sendError(user.ws, "Room name is required");
+  }
+
+  if (!roomType || (roomType !== 'public' && roomType !== 'private')) {
+    return sendError(user.ws, "Room type must be 'public' or 'private'");
+  }
+
+  console.log(`[ROOM] ${user.username} creating ${roomType} room: ${name}`);
+
+  // Check if room name already exists
+  const existingRoom = await prisma.room.findUnique({
+    where: { name },
+  });
+
+  if (existingRoom) {
+    return sendError(user.ws, `Room name '${name}' already exists`);
+  }
+
+  // Generate encryption key for the room
+  const encryptedKey = crypto.randomBytes(32).toString('hex');
+
+  // Auto-generate display name if not provided
+  const finalDisplayName = displayName || `#${name}`;
+
+  // Create room in database
+  const room = await prisma.room.create({
+    data: {
+      name,
+      displayName: finalDisplayName,
+      roomType,
+      encryptedKey,
+      creatorId: user.userId,
+    },
+  });
+
+  // Add creator as member
+  await prisma.roomMember.create({
+    data: {
+      roomId: room.id,
+      userId: user.userId,
+    },
+  });
+
+  // Send confirmation
+  sendMessage(user.ws, {
+    type: "roomCreated",
+    payload: {
+      roomId: room.id,
+      roomName: room.name,
+      displayName: room.displayName,
+      roomType: room.roomType,
+      encryptedKey: room.encryptedKey || '',
+    },
+  });
+
+  console.log(`[ROOM] ${roomType} room created: ${room.displayName} (${room.id}) by ${user.username}`);
+}
+
+async function handleListRooms(user: ConnectedUser, payload: ListRoomsPayload) {
+  console.log(`[ROOM] ${user.username} requesting room list`);
+
+  // Get all public rooms
+  const publicRooms = await prisma.room.findMany({
+    where: {
+      roomType: 'public',
+      deletedAt: null,
+    },
+    include: {
+      _count: {
+        select: { members: true },
+      },
+      members: {
+        where: { userId: user.userId },
+      },
+    },
+  });
+
+  // Get user's private rooms (only ones they're a member of)
+  const privateRooms = await prisma.room.findMany({
+    where: {
+      roomType: 'private',
+      deletedAt: null,
+      members: {
+        some: { userId: user.userId },
+      },
+    },
+    include: {
+      _count: {
+        select: { members: true },
+      },
+      members: {
+        where: { userId: user.userId },
+      },
+    },
+  });
+
+  // Format room info
+  const formatRoom = (room: any) => ({
+    roomId: room.id,
+    name: room.name,
+    displayName: room.displayName,
+    roomType: room.roomType,
+    memberCount: room._count.members,
+    isJoined: room.members.length > 0,
+  });
+
+  sendMessage(user.ws, {
+    type: "roomsList",
+    payload: {
+      publicRooms: publicRooms.map(formatRoom),
+      privateRooms: privateRooms.map(formatRoom),
+    },
+  });
+
+  console.log(`[ROOM] Sent room list to ${user.username}: ${publicRooms.length} public, ${privateRooms.length} private`);
+}
+
+async function handleLeaveRoom(user: ConnectedUser, payload: LeaveRoomPayload) {
+  const { roomId } = payload;
+
+  if (!roomId) {
+    return;
+  }
+
+  console.log(`[ROOM] ${user.username} leaving room ${roomId}`);
+
+  // Remove from active room
+  const activeRoom = activeRooms.get(roomId);
+  if (activeRoom) {
+    activeRoom.users = activeRoom.users.filter(u => u.userId !== user.userId);
+
+    // Broadcast user left
+    broadcastToRoom(roomId, {
+      type: "userLeft",
+      payload: {
+        username: user.username,
+        userId: user.userId,
+      },
     });
+
+    // Remove active room if empty
+    if (activeRoom.users.length === 0) {
+      activeRooms.delete(roomId);
+      console.log(`[ROOM] Active room ${roomId} removed (no users)`);
+    }
+  }
+
+  user.currentRoomId = null;
+}
+
+function handleDisconnect(user: ConnectedUser) {
+  if (user.currentRoomId) {
+    handleLeaveRoom(user, { roomId: user.currentRoomId });
+  }
+}
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+function sendMessage(ws: WebSocket, message: ServerMessage) {
+  if (ws.readyState === WebSocket.OPEN) {
+    const json = JSON.stringify(message);
+    console.log(`[WS] → Sending:`, json);
+    ws.send(json);
+  }
 }
 
 function sendError(ws: WebSocket, message: string) {
-    const errorResponse = {
-        typ: "error",
-        payload: { message }
-    };
-    console.log("Sending error:", JSON.stringify(errorResponse, null, 2));
-    ws.send(JSON.stringify(errorResponse));
+  sendMessage(ws, {
+    type: "error",
+    payload: { message },
+  });
 }
 
-process.on('SIGINT', () => {
-    console.log('\nShutting down server...');
-    wss.close(() => {
-        console.log('Server shutdown complete');
-        process.exit(0);
-    });
+function broadcastToRoom(roomId: string, message: ServerMessage, excludeWs?: WebSocket) {
+  const room = activeRooms.get(roomId);
+  if (!room) return;
+
+  const json = JSON.stringify(message);
+  console.log(`[BROADCAST] To room ${roomId}:`, json);
+
+  room.users.forEach(user => {
+    if (user.ws !== excludeWs && user.ws.readyState === WebSocket.OPEN) {
+      user.ws.send(json);
+    }
+  });
+}
+
+// ============================================================================
+// START SERVER
+// ============================================================================
+
+httpServer.listen(PORT, HOST, () => {
+  console.log(`✅ HTTP API listening on http://${HOST}:${PORT}`);
+  console.log(`✅ WebSocket server listening on ws://${HOST}:${PORT}/ws`);
+  console.log(`📊 Health check available at http://${HOST}:${PORT}/health`);
+  console.log("=====================================================");
 });
 
-process.on('SIGTERM', () => {
-    console.log('\nShutting down server...');
-    wss.close(() => {
-        console.log('Server shutdown complete');
-        process.exit(0);
-    });
-});
+// ============================================================================
+// GRACEFUL SHUTDOWN
+// ============================================================================
+
+async function shutdown() {
+  console.log('\n🛑 Shutting down server...');
+  
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.close();
+    }
+  });
+
+  wss.close(() => {
+    console.log('✅ WebSocket server closed');
+  });
+
+  httpServer.close(() => {
+    console.log('✅ HTTP server closed');
+  });
+
+  await prisma.$disconnect();
+  console.log('✅ Database disconnected');
+  
+  process.exit(0);
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

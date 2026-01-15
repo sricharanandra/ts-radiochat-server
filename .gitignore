@@ -57,3 +57,5 @@ coverage/
 # Production configuration
 ecosystem.config.js
 pm2.config.js
+
+/src/generated/prisma

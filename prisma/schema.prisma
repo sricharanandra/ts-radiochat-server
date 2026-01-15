@@ -1,0 +1,109 @@
+// RadioChat Database Schema
+// End-to-end encrypted chat with SSH key authentication
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Users with SSH key authentication
+model User {
+  id                String    @id @default(uuid())
+  username          String    @unique
+  publicKeyEd25519  String?   @map("public_key_ed25519")
+  publicKeyRsa      String?   @map("public_key_rsa")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  lastSeen          DateTime? @map("last_seen")
+  
+  // Relations
+  createdRooms      Room[]         @relation("RoomCreator")
+  roomMemberships   RoomMember[]
+  messages          Message[]
+  devices           Device[]
+  
+  @@map("users")
+}
+
+// Chat rooms with human-readable names
+model Room {
+  id          String    @id @default(uuid())
+  name        String    @unique // e.g., "general", "team-chat" (no # prefix in DB)
+  displayName String    @map("display_name") // e.g., "#general"
+  roomType    String    @default("public") @map("room_type") // "public" or "private"
+  encryptedKey String?  @map("encrypted_key") // Server-managed encryption key (encrypted)
+  creatorId   String    @map("creator_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
+  
+  // Relations
+  creator     User          @relation("RoomCreator", fields: [creatorId], references: [id])
+  members     RoomMember[]
+  messages    Message[]
+  roomKeys    RoomKey[]
+  
+  @@map("rooms")
+}
+
+// Per-user encrypted room keys (for key distribution)
+model RoomKey {
+  id              String   @id @default(uuid())
+  roomId          String   @map("room_id")
+  userId          String   @map("user_id")
+  encryptedKey    String   @map("encrypted_key") // AES key encrypted for this user
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  room            Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
+  @@unique([roomId, userId])
+  @@map("room_keys")
+}
+
+// Room membership (many-to-many)
+model RoomMember {
+  roomId    String   @map("room_id")
+  userId    String   @map("user_id")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+  
+  // Relations
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@id([roomId, userId])
+  @@map("room_members")
+}
+
+// Encrypted messages
+model Message {
+  id          String   @id @default(uuid())
+  roomId      String   @map("room_id")
+  senderId    String   @map("sender_id")
+  ciphertext  String
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  
+  @@index([roomId, createdAt])
+  @@map("messages")
+}
+
+// Registered devices per user
+model Device {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  deviceName  String   @map("device_name")
+  publicKey   String   @map("public_key")
+  lastUsed    DateTime @default(now()) @map("last_used")
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("devices")
+}
