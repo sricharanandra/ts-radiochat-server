@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -83,6 +83,8 @@ model Message {
   roomId      String   @map("room_id")
   senderId    String   @map("sender_id")
   ciphertext  String
+  messageType String   @default("text") @map("message_type") // "text" or "image"
+  imageUrl    String?  @map("image_url")    // Object storage URL
   createdAt   DateTime @default(now()) @map("created_at")
   
   // Relations

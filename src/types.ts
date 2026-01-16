@@ -22,6 +22,8 @@ export interface JoinRoomPayload {
 export interface SendMessagePayload {
   roomId: string;
   ciphertext: string;
+  messageType?: "text" | "image";  // Type of message
+  imageData?: string;              // Base64-encoded encrypted image data (for uploads)
 }
 
 export interface CreateRoomPayload {
@@ -54,6 +56,9 @@ export interface MessagePayload {
   username: string;
   ciphertext: string;
   timestamp: string;
+  messageType?: "text" | "image";  // Type of message
+  imageUrl?: string;               // Object storage URL for images
+  imageThumbnail?: string;         // Small base64 thumbnail for preview
 }
 
 export interface UserJoinedPayload {

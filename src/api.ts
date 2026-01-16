@@ -129,33 +129,49 @@ app.get('/api/rooms', async (req: Request, res: Response) => {
   }
 });
 
-// Get room messages
+// Get room messages with cursor-based pagination
 app.get('/api/rooms/:roomId/messages', async (req: Request, res: Response) => {
   try {
     const roomId = req.params.roomId as string;
     const limitQuery = req.query.limit;
-    const limit = (typeof limitQuery === 'string') ? parseInt(limitQuery) : 50;
+    const before = req.query.before as string | undefined; // Message ID cursor
+    const limit = (typeof limitQuery === 'string') ? Math.min(parseInt(limitQuery), 100) : 50;
+
+    const where: any = { roomId };
+    
+    // Cursor-based pagination: fetch messages before this ID
+    if (before) {
+      where.id = { lt: before };
+    }
 
     const messages = await prisma.message.findMany({
-      where: { roomId },
+      where,
       include: {
         sender: {
           select: { username: true },
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take: limit + 1, // Fetch one extra to check if there are more
     });
 
+    const hasMore = messages.length > limit;
+    const messagesToReturn = hasMore ? messages.slice(0, limit) : messages;
+
     // Reverse to get chronological order
-    const formattedMessages = messages.reverse().map(m => ({
+    const formattedMessages = messagesToReturn.reverse().map(m => ({
       id: m.id,
       username: m.sender.username,
       ciphertext: m.ciphertext,
+      messageType: m.messageType,
+      imageUrl: m.imageUrl || undefined,
       timestamp: m.createdAt.toISOString(),
     }));
 
-    res.json(formattedMessages);
+    res.json({
+      messages: formattedMessages,
+      hasMore,
+    });
   } catch (error: any) {
     console.error('[API] Get messages error:', error);
     res.status(500).json({ error: error.message });
@@ -164,7 +180,12 @@ app.get('/api/rooms/:roomId/messages', async (req: Request, res: Response) => {
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok',
+    environment: process.env.NODE_ENV || 'development',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
 });
 
 export default app;

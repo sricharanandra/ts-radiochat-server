@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { parseKey } from 'ssh2-streams';
+import nacl from 'tweetnacl';
+import forge from 'node-forge';
 import { prisma } from './database';
 import { JWTPayload, RegisterRequest, RegisterResponse, ChallengeResponse, VerifyResponse } from './types';
 
@@ -143,11 +146,85 @@ export async function verifySignature(
     throw new Error('Public key does not match');
   }
 
-  // TODO: Implement actual signature verification
-  // For now, we'll skip signature verification to get the system working
-  // In production, you would verify the signature using the public key
-  
-  console.log(`[AUTH] User ${username} authenticated (signature verification skipped for development)`);
+  // Determine key type
+  const keyType = user.publicKeyEd25519 ? 'ed25519' : 'rsa';
+  const storedKey = user.publicKeyEd25519 || user.publicKeyRsa;
+
+  if (!storedKey) {
+    throw new Error('No public key found for user');
+  }
+
+  // Verify signature based on key type
+  try {
+    if (keyType === 'ed25519') {
+      // Ed25519 signature verification
+      const parsed = parseKey(storedKey);
+      if (!parsed || parsed.type !== 'ssh-ed25519') {
+        throw new Error('Invalid Ed25519 public key format');
+      }
+
+      const challengeBuffer = Buffer.from(challengeData.challenge, 'hex');
+      const signatureBuffer = Buffer.from(signature, 'hex');
+      
+      // Extract public key bytes (skip SSH key format headers)
+      const pubKeyData = parsed.getPublicSSH();
+      const keyBytes = pubKeyData.slice(pubKeyData.length - 32); // Last 32 bytes are the Ed25519 key
+      
+      const valid = nacl.sign.detached.verify(
+        challengeBuffer,
+        signatureBuffer,
+        keyBytes
+      );
+
+      if (!valid) {
+        throw new Error('Invalid Ed25519 signature');
+      }
+    } else {
+      // RSA signature verification
+      const parsed = parseKey(storedKey);
+      if (!parsed || parsed.type !== 'ssh-rsa') {
+        throw new Error('Invalid RSA public key format');
+      }
+
+      const pubKeySSH = parsed.getPublicSSH();
+      
+      // Convert SSH RSA key to PEM format for node-forge
+      // SSH format: [length][e][length][n]
+      let offset = 4; // Skip first length field
+      const eLength = pubKeySSH.readUInt32BE(offset);
+      offset += 4;
+      const e = pubKeySSH.slice(offset, offset + eLength);
+      offset += eLength;
+      
+      const nLength = pubKeySSH.readUInt32BE(offset);
+      offset += 4;
+      const n = pubKeySSH.slice(offset, offset + nLength);
+
+      // Create forge RSA public key
+      const rsaPublicKey = forge.pki.setRsaPublicKey(
+        new forge.jsbn.BigInteger(n.toString('hex'), 16),
+        new forge.jsbn.BigInteger(e.toString('hex'), 16)
+      );
+
+      // Verify signature
+      const md = forge.md.sha256.create();
+      md.update(challengeData.challenge, 'utf8');
+      
+      const valid = rsaPublicKey.verify(
+        md.digest().bytes(),
+        Buffer.from(signature, 'hex').toString('binary')
+      );
+
+      if (!valid) {
+        throw new Error('Invalid RSA signature');
+      }
+    }
+
+    console.log(`[AUTH] User ${username} authenticated successfully with ${keyType}`);
+  } catch (error: any) {
+    console.error(`[AUTH] Signature verification failed:`, error.message);
+    throw new Error('Signature verification failed: ' + error.message);
+  }
 
   // Remove used challenge
   activeChallenges.delete(username);
@@ -173,6 +250,11 @@ export async function verifySignature(
 // ============================================================================
 
 export async function simpleLogin(username: string): Promise<VerifyResponse> {
+  // Only allow in development mode
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Simple login is disabled in production. Please use SSH key authentication.');
+  }
+  
   // Get user from database
   let user = await prisma.user.findUnique({
     where: { username },

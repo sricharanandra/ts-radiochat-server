@@ -1,0 +1,43 @@
+[Unit]
+Description=RadioChat WebSocket Server
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=radiochat
+Group=radiochat
+WorkingDirectory=/opt/radiochat
+
+# Environment
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/radiochat/.env.production
+
+# Execution
+ExecStart=/usr/bin/node dist/server.js
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Logging
+StandardOutput=append:/var/log/radiochat/server.log
+StandardError=append:/var/log/radiochat/error.log
+SyslogIdentifier=radiochat
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/radiochat
+ReadOnlyPaths=/etc/letsencrypt
+
+# Resource limits (critical for 1GB RAM)
+MemoryMax=300M
+MemoryHigh=250M
+
+[Install]
+WantedBy=multi-user.target

@@ -24,6 +24,15 @@ dotenv.config();
 
 const PORT = parseInt(process.env.PORT || '8080');
 const HOST = process.env.HOST || '0.0.0.0';
+const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Startup logging
+console.log(`[STARTUP] RadioChat Server v1.0.0`);
+console.log(`[STARTUP] Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`[STARTUP] Host: ${HOST}:${PORT}`);
+console.log(`[STARTUP] Authentication: ${isProduction ? 'SSH Keys Required' : 'Development Mode (simpleLogin enabled)'}`);
+console.log(`[STARTUP] Database: ${process.env.DATABASE_URL ? 'Configured' : 'Not configured'}`);
 
 // ============================================================================
 // SERVER STATE
@@ -548,9 +557,10 @@ httpServer.listen(PORT, HOST, () => {
 async function shutdown() {
   console.log('\n🛑 Shutting down server...');
   
+  // Close all WebSocket connections gracefully
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.close();
+      client.close(1001, 'Server shutting down');
     }
   });
 
