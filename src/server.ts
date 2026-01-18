@@ -309,24 +309,58 @@ async function handleJoinRoom(user: ConnectedUser, payload: JoinRoomPayload) {
 }
 
 async function handleSendMessage(user: ConnectedUser, payload: SendMessagePayload) {
-  const { roomId, ciphertext } = payload;
+  const { roomId, ciphertext, messageType, imageData } = payload;
 
   if (!user.currentRoomId || user.currentRoomId !== roomId) {
     return sendError(user.ws, "You must be in the room to send messages");
   }
 
-  if (!ciphertext) {
-    return sendError(user.ws, "Message content is required");
+  if (!ciphertext && !imageData) {
+    return sendError(user.ws, "Message content or image is required");
   }
 
-  console.log(`[MSG] ${user.username} sending message to room ${roomId}`);
+  console.log(`[MSG] ${user.username} sending ${messageType || "text"} message to room ${roomId}`);
+
+  let imageUrl: string | null = null;
+  let imageThumbnail: string | null = null;
+
+  // Handle image upload if provided
+  if (messageType === "image" && imageData) {
+    try {
+      const { uploadImage, generateImageId, validateImageSize } = await import("./storage.js");
+      const { processImage, generateThumbnail } = await import("./images.js");
+
+      // Decode base64 image data (it's already encrypted by client)
+      const encryptedImageBuffer = Buffer.from(imageData, "base64");
+
+      // Validate size (encrypted data)
+      if (!validateImageSize(encryptedImageBuffer.length)) {
+        return sendError(user.ws, "Image too large (max 10MB)");
+      }
+
+      // Generate unique ID for the image
+      const imageId = generateImageId();
+
+      // Upload encrypted image to Oracle Object Storage
+      imageUrl = await uploadImage(encryptedImageBuffer, imageId);
+
+      // Note: We don't generate thumbnails for encrypted images
+      // Client will need to decrypt and display the full image
+      console.log(`[IMG] Image uploaded: ${imageUrl}`);
+    } catch (error: any) {
+      console.error("[IMG] Failed to upload image:", error);
+      return sendError(user.ws, "Failed to upload image");
+    }
+  }
 
   // Save message to database
   const message = await prisma.message.create({
     data: {
       roomId,
       senderId: user.userId,
-      ciphertext,
+      ciphertext: ciphertext || "",
+      messageType: messageType || "text",
+      imageUrl: imageUrl,
     },
   });
 
@@ -336,6 +370,8 @@ async function handleSendMessage(user: ConnectedUser, payload: SendMessagePayloa
     username: user.username,
     ciphertext: message.ciphertext,
     timestamp: message.createdAt.toISOString(),
+    messageType: message.messageType as "text" | "image" | undefined,
+    imageUrl: message.imageUrl || undefined,
   };
 
   broadcastToRoom(roomId, {

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { parseKey } from 'ssh2-streams';
+import { ParsedKey, utils as sshUtils } from 'ssh2-streams';
 import nacl from 'tweetnacl';
 import forge from 'node-forge';
 import { prisma } from './database';
@@ -158,8 +158,12 @@ export async function verifySignature(
   try {
     if (keyType === 'ed25519') {
       // Ed25519 signature verification
-      const parsed = parseKey(storedKey);
-      if (!parsed || parsed.type !== 'ssh-ed25519') {
+      const parsed = sshUtils.parseKey(storedKey);
+      if (!parsed || parsed instanceof Error) {
+        throw new Error('Failed to parse Ed25519 public key');
+      }
+      const key = Array.isArray(parsed) ? parsed[0] : parsed;
+      if (key.type !== 'ssh-ed25519') {
         throw new Error('Invalid Ed25519 public key format');
       }
 
@@ -167,7 +171,7 @@ export async function verifySignature(
       const signatureBuffer = Buffer.from(signature, 'hex');
       
       // Extract public key bytes (skip SSH key format headers)
-      const pubKeyData = parsed.getPublicSSH();
+      const pubKeyData = Buffer.from(key.getPublicSSH());
       const keyBytes = pubKeyData.slice(pubKeyData.length - 32); // Last 32 bytes are the Ed25519 key
       
       const valid = nacl.sign.detached.verify(
@@ -181,12 +185,16 @@ export async function verifySignature(
       }
     } else {
       // RSA signature verification
-      const parsed = parseKey(storedKey);
-      if (!parsed || parsed.type !== 'ssh-rsa') {
+      const parsed = sshUtils.parseKey(storedKey);
+      if (!parsed || parsed instanceof Error) {
+        throw new Error('Failed to parse RSA public key');
+      }
+      const key = Array.isArray(parsed) ? parsed[0] : parsed;
+      if (key.type !== 'ssh-rsa') {
         throw new Error('Invalid RSA public key format');
       }
 
-      const pubKeySSH = parsed.getPublicSSH();
+      const pubKeySSH = Buffer.from(key.getPublicSSH());
       
       // Convert SSH RSA key to PEM format for node-forge
       // SSH format: [length][e][length][n]
