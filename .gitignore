@@ -1,5 +1,3 @@
-# Keep environment variables out of version control
-/src/generated/prisma
 # Environment variables
 .env
 .env.*
@@ -16,46 +14,28 @@ build/
 logs/
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
 
 # Database files
 *.db
 *.sqlite
-db.json
 
 # IDE files
 .vscode/
 .idea/
 *.swp
-*.swo
 
-# OS generated files
+# OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
-# Prisma
-.env
-prisma/migrations/**/migration.sql
+# Prisma generated
+src/generated/
 
-# Test and development files
+# Test files
 test-*.ts
 tests/
 coverage/
 
-# Production configuration
+# Production config
 ecosystem.config.js
 pm2.config.js
-
-/src/generated/prisma
