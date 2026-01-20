@@ -218,7 +218,7 @@ async function handleJoinRoom(user: ConnectedUser, payload: JoinRoomPayload) {
             select: { username: true },
           },
         },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: 'desc' },
         take: 50,
       },
       members: {
@@ -277,12 +277,13 @@ async function handleJoinRoom(user: ConnectedUser, payload: JoinRoomPayload) {
   user.currentRoomId = room.id;
 
   // Send room joined confirmation with message history and encryption key
+  // Messages are fetched in desc order (newest first), reverse for chronological display
   const messages = room.messages.map(m => ({
     id: m.id,
     username: m.sender.username,
     ciphertext: m.ciphertext,
     timestamp: m.createdAt.toISOString(),
-  }));
+  })).reverse();
 
   sendMessage(user.ws, {
     type: "roomJoined",
