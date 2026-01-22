@@ -17,6 +17,9 @@ import {
   ListRoomsPayload,
   CreateInvitePayload,
   JoinViaInvitePayload,
+  RenameRoomPayload,
+  DeleteRoomPayload,
+  TransferOwnershipPayload,
   BaseMessage,
 } from './types';
 import crypto from 'crypto';
@@ -173,6 +176,18 @@ wss.on("connection", async (ws: WebSocket, request) => {
 
         case "joinViaInvite":
           await handleJoinViaInvite(currentUser, message.payload);
+          break;
+
+        case "renameRoom":
+          await handleRenameRoom(currentUser, message.payload);
+          break;
+
+        case "deleteRoom":
+          await handleDeleteRoom(currentUser, message.payload);
+          break;
+
+        case "transferOwnership":
+          await handleTransferOwnership(currentUser, message.payload);
           break;
 
         default:
@@ -612,6 +627,166 @@ async function handleJoinViaInvite(user: ConnectedUser, payload: JoinViaInvitePa
       userId: user.userId,
     },
   }, user.ws);
+}
+
+async function handleRenameRoom(user: ConnectedUser, payload: RenameRoomPayload) {
+  const { roomId, newName } = payload;
+
+  if (!roomId || !newName) {
+    return sendError(user.ws, "Room ID and new name are required");
+  }
+
+  // Find room and check ownership
+  const room = await prisma.room.findUnique({
+    where: { id: roomId },
+  });
+
+  if (!room) {
+    return sendError(user.ws, "Room not found");
+  }
+
+  if (room.creatorId !== user.userId) {
+    return sendError(user.ws, "Only the room owner can rename the room");
+  }
+
+  // Check if new name is taken
+  const existingRoom = await prisma.room.findUnique({
+    where: { name: newName },
+  });
+
+  if (existingRoom && existingRoom.id !== roomId) {
+    return sendError(user.ws, `Room name '${newName}' is already taken`);
+  }
+
+  // Update room
+  const displayName = room.displayName.startsWith('#') ? `#${newName}` : newName;
+  const updatedRoom = await prisma.room.update({
+    where: { id: roomId },
+    data: {
+      name: newName,
+      displayName,
+    },
+  });
+
+  // Update active room cache
+  const activeRoom = activeRooms.get(roomId);
+  if (activeRoom) {
+    activeRoom.name = newName;
+    activeRoom.displayName = displayName;
+  }
+
+  // Broadcast update
+  broadcastToRoom(roomId, {
+    type: "roomRenamed",
+    payload: {
+      roomId,
+      newName,
+      displayName,
+    },
+  });
+
+  console.log(`[ROOM] ${user.username} renamed room ${room.name} to ${newName}`);
+}
+
+async function handleDeleteRoom(user: ConnectedUser, payload: DeleteRoomPayload) {
+  const { roomId } = payload;
+
+  if (!roomId) {
+    return sendError(user.ws, "Room ID is required");
+  }
+
+  // Find room and check ownership
+  const room = await prisma.room.findUnique({
+    where: { id: roomId },
+  });
+
+  if (!room) {
+    return sendError(user.ws, "Room not found");
+  }
+
+  if (room.creatorId !== user.userId) {
+    return sendError(user.ws, "Only the room owner can delete the room");
+  }
+
+  // Soft delete room
+  await prisma.room.update({
+    where: { id: roomId },
+    data: { deletedAt: new Date() },
+  });
+
+  // Notify all users in the room
+  broadcastToRoom(roomId, {
+    type: "roomDeleted",
+    payload: { roomId },
+  });
+
+  // Remove from active rooms cache
+  activeRooms.delete(roomId);
+
+  console.log(`[ROOM] ${user.username} deleted room ${room.name}`);
+}
+
+async function handleTransferOwnership(user: ConnectedUser, payload: TransferOwnershipPayload) {
+  const { roomId, newOwnerUsername } = payload;
+
+  if (!roomId || !newOwnerUsername) {
+    return sendError(user.ws, "Room ID and new owner username are required");
+  }
+
+  // Find room and check ownership
+  const room = await prisma.room.findUnique({
+    where: { id: roomId },
+  });
+
+  if (!room) {
+    return sendError(user.ws, "Room not found");
+  }
+
+  if (room.creatorId !== user.userId) {
+    return sendError(user.ws, "Only the room owner can transfer ownership");
+  }
+
+  // Find target user
+  const targetUser = await prisma.user.findUnique({
+    where: { username: newOwnerUsername },
+  });
+
+  if (!targetUser) {
+    return sendError(user.ws, "Target user not found");
+  }
+
+  // Update creatorId (which serves as owner)
+  await prisma.room.update({
+    where: { id: roomId },
+    data: { creatorId: targetUser.id },
+  });
+
+  // Ensure target user is a member
+  await prisma.roomMember.upsert({
+    where: {
+      roomId_userId: {
+        roomId,
+        userId: targetUser.id,
+      },
+    },
+    create: {
+      roomId,
+      userId: targetUser.id,
+    },
+    update: {},
+  });
+
+  // Broadcast update
+  broadcastToRoom(roomId, {
+    type: "ownershipTransferred",
+    payload: {
+      roomId,
+      newOwnerUsername: targetUser.username,
+      newOwnerId: targetUser.id,
+    },
+  });
+
+  console.log(`[ROOM] ${user.username} transferred ownership of ${room.name} to ${targetUser.username}`);
 }
 
 async function handleCreateRoom(user: ConnectedUser, payload: CreateRoomPayload) {

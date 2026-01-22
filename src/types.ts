@@ -52,6 +52,20 @@ export interface JoinViaInvitePayload {
   code: string;
 }
 
+export interface RenameRoomPayload {
+  roomId: string;
+  newName: string;
+}
+
+export interface DeleteRoomPayload {
+  roomId: string;
+}
+
+export interface TransferOwnershipPayload {
+  roomId: string;
+  newOwnerUsername: string;
+}
+
 export type ClientMessage =
   | BaseMessage<JoinRoomPayload> & { type: "joinRoom" }
   | BaseMessage<SendMessagePayload> & { type: "sendMessage" }
@@ -60,7 +74,10 @@ export type ClientMessage =
   | BaseMessage<ListRoomsPayload> & { type: "listRooms" }
   | BaseMessage<TypingPayload> & { type: "typing" }
   | BaseMessage<CreateInvitePayload> & { type: "createInvite" }
-  | BaseMessage<JoinViaInvitePayload> & { type: "joinViaInvite" };
+  | BaseMessage<JoinViaInvitePayload> & { type: "joinViaInvite" }
+  | BaseMessage<RenameRoomPayload> & { type: "renameRoom" }
+  | BaseMessage<DeleteRoomPayload> & { type: "deleteRoom" }
+  | BaseMessage<TransferOwnershipPayload> & { type: "transferOwnership" };
 
 // ============================================================================
 // SERVER → CLIENT MESSAGES
@@ -144,6 +161,22 @@ export interface InviteCreatedPayload {
   expiresAt: string;
 }
 
+export interface RoomRenamedPayload {
+  roomId: string;
+  newName: string;
+  displayName: string;
+}
+
+export interface RoomDeletedPayload {
+  roomId: string;
+}
+
+export interface OwnershipTransferredPayload {
+  roomId: string;
+  newOwnerUsername: string;
+  newOwnerId: string;
+}
+
 export type ServerMessage =
   | BaseMessage<MessagePayload> & { type: "message" }
   | BaseMessage<UserJoinedPayload> & { type: "userJoined" }
@@ -154,7 +187,10 @@ export type ServerMessage =
   | BaseMessage<ErrorPayload> & { type: "error" }
   | BaseMessage<InfoPayload> & { type: "info" }
   | BaseMessage<UserTypingPayload> & { type: "userTyping" }
-  | BaseMessage<InviteCreatedPayload> & { type: "inviteCreated" };
+  | BaseMessage<InviteCreatedPayload> & { type: "inviteCreated" }
+  | BaseMessage<RoomRenamedPayload> & { type: "roomRenamed" }
+  | BaseMessage<RoomDeletedPayload> & { type: "roomDeleted" }
+  | BaseMessage<OwnershipTransferredPayload> & { type: "ownershipTransferred" };
 
 // ============================================================================
 // SERVER STATE TYPES
