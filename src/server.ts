@@ -289,6 +289,12 @@ async function handleJoinRoom(user: ConnectedUser, payload: JoinRoomPayload) {
     timestamp: m.createdAt.toISOString(),
   })).reverse();
 
+  // Get online users in the room
+  const onlineUsers = activeRoom.users.map(u => ({
+    username: u.username,
+    userId: u.userId,
+  }));
+
   sendMessage(user.ws, {
     type: "roomJoined",
     payload: {
@@ -298,6 +304,7 @@ async function handleJoinRoom(user: ConnectedUser, payload: JoinRoomPayload) {
       roomType: room.roomType,
       encryptedKey: room.encryptedKey || '',
       messages,
+      onlineUsers,
     },
   });
 

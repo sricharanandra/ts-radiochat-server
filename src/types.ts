@@ -76,6 +76,11 @@ export interface UserLeftPayload {
   userId: string;
 }
 
+export interface OnlineUser {
+  username: string;
+  userId: string;
+}
+
 export interface RoomJoinedPayload {
   roomId: string;
   roomName: string;
@@ -83,6 +88,7 @@ export interface RoomJoinedPayload {
   roomType: string;     // "public" or "private"
   encryptedKey: string; // Server-managed room encryption key
   messages: MessagePayload[];
+  onlineUsers: OnlineUser[];  // Users currently in the room
 }
 
 export interface RoomCreatedPayload {
