@@ -968,7 +968,7 @@ async function handleListRooms(user: ConnectedUser, payload: ListRoomsPayload) {
   // Get user's private rooms (only ones they're a member of)
   const privateRooms = await prisma.room.findMany({
     where: {
-      roomType: 'private',
+      roomType: { in: ['private', 'dm'] },
       deletedAt: null,
       members: {
         some: { userId: user.userId },
