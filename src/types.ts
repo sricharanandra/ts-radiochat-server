@@ -44,13 +44,23 @@ export interface TypingPayload {
   roomId: string;
 }
 
+export interface CreateInvitePayload {
+  roomId: string;
+}
+
+export interface JoinViaInvitePayload {
+  code: string;
+}
+
 export type ClientMessage =
   | BaseMessage<JoinRoomPayload> & { type: "joinRoom" }
   | BaseMessage<SendMessagePayload> & { type: "sendMessage" }
   | BaseMessage<CreateRoomPayload> & { type: "createRoom" }
   | BaseMessage<LeaveRoomPayload> & { type: "leaveRoom" }
   | BaseMessage<ListRoomsPayload> & { type: "listRooms" }
-  | BaseMessage<TypingPayload> & { type: "typing" };
+  | BaseMessage<TypingPayload> & { type: "typing" }
+  | BaseMessage<CreateInvitePayload> & { type: "createInvite" }
+  | BaseMessage<JoinViaInvitePayload> & { type: "joinViaInvite" };
 
 // ============================================================================
 // SERVER → CLIENT MESSAGES
@@ -127,6 +137,13 @@ export interface UserTypingPayload {
   userId: string;
 }
 
+export interface InviteCreatedPayload {
+  code: string;
+  roomId: string;
+  roomName: string;
+  expiresAt: string;
+}
+
 export type ServerMessage =
   | BaseMessage<MessagePayload> & { type: "message" }
   | BaseMessage<UserJoinedPayload> & { type: "userJoined" }
@@ -136,7 +153,8 @@ export type ServerMessage =
   | BaseMessage<RoomsListPayload> & { type: "roomsList" }
   | BaseMessage<ErrorPayload> & { type: "error" }
   | BaseMessage<InfoPayload> & { type: "info" }
-  | BaseMessage<UserTypingPayload> & { type: "userTyping" };
+  | BaseMessage<UserTypingPayload> & { type: "userTyping" }
+  | BaseMessage<InviteCreatedPayload> & { type: "inviteCreated" };
 
 // ============================================================================
 // SERVER STATE TYPES

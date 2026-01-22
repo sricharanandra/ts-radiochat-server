@@ -24,6 +24,7 @@ model User {
   roomMemberships   RoomMember[]
   messages          Message[]
   devices           Device[]
+  createdInvites    RoomInvite[]   @relation("InviteCreator")
   
   @@map("users")
 }
@@ -44,6 +45,7 @@ model Room {
   members     RoomMember[]
   messages    Message[]
   roomKeys    RoomKey[]
+  invites     RoomInvite[]
   
   @@map("rooms")
 }
@@ -61,6 +63,24 @@ model RoomKey {
   
   @@unique([roomId, userId])
   @@map("room_keys")
+}
+
+// Room invite codes (single-use, 24h expiry)
+model RoomInvite {
+  id          String    @id @default(uuid())
+  code        String    @unique // 8-char alphanumeric
+  roomId      String    @map("room_id")
+  createdById String    @map("created_by_id")
+  expiresAt   DateTime  @map("expires_at")
+  usedById    String?   @map("used_by_id")
+  usedAt      DateTime? @map("used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  // Relations
+  room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdBy   User      @relation("InviteCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  
+  @@map("room_invites")
 }
 
 // Room membership (many-to-many)

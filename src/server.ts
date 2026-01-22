@@ -15,6 +15,8 @@ import {
   CreateRoomPayload,
   LeaveRoomPayload,
   ListRoomsPayload,
+  CreateInvitePayload,
+  JoinViaInvitePayload,
   BaseMessage,
 } from './types';
 import crypto from 'crypto';
@@ -163,6 +165,14 @@ wss.on("connection", async (ws: WebSocket, request) => {
 
         case "typing":
           handleTyping(currentUser, message.payload);
+          break;
+
+        case "createInvite":
+          await handleCreateInvite(currentUser, message.payload);
+          break;
+
+        case "joinViaInvite":
+          await handleJoinViaInvite(currentUser, message.payload);
           break;
 
         default:
@@ -409,6 +419,199 @@ function handleTyping(user: ConnectedUser, payload: { roomId: string }) {
       userId: user.userId,
     },
   }, user.ws); // Exclude the sender
+}
+
+async function handleCreateInvite(user: ConnectedUser, payload: CreateInvitePayload) {
+  const { roomId } = payload;
+
+  if (!roomId) {
+    return sendError(user.ws, "Room ID is required");
+  }
+
+  // Check if user is a member of the room
+  const membership = await prisma.roomMember.findUnique({
+    where: {
+      roomId_userId: {
+        roomId,
+        userId: user.userId,
+      },
+    },
+    include: {
+      room: true,
+    },
+  });
+
+  if (!membership) {
+    return sendError(user.ws, "You must be a member of the room to create invites");
+  }
+
+  // Generate 8-character alphanumeric code
+  const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+  
+  // Set expiry to 24 hours from now
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  // Create invite in database
+  const invite = await prisma.roomInvite.create({
+    data: {
+      code,
+      roomId,
+      createdById: user.userId,
+      expiresAt,
+    },
+  });
+
+  console.log(`[INVITE] ${user.username} created invite ${code} for room ${membership.room.displayName}`);
+
+  sendMessage(user.ws, {
+    type: "inviteCreated",
+    payload: {
+      code: invite.code,
+      roomId: invite.roomId,
+      roomName: membership.room.name,
+      expiresAt: invite.expiresAt.toISOString(),
+    },
+  });
+}
+
+async function handleJoinViaInvite(user: ConnectedUser, payload: JoinViaInvitePayload) {
+  const { code } = payload;
+
+  if (!code) {
+    return sendError(user.ws, "Invite code is required");
+  }
+
+  // Find the invite
+  const invite = await prisma.roomInvite.findUnique({
+    where: { code: code.toUpperCase() },
+    include: {
+      room: {
+        include: {
+          messages: {
+            include: {
+              sender: {
+                select: { username: true },
+              },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 50,
+          },
+        },
+      },
+    },
+  });
+
+  if (!invite) {
+    return sendError(user.ws, "Invalid invite code");
+  }
+
+  // Check if expired
+  if (new Date() > invite.expiresAt) {
+    return sendError(user.ws, "Invite code has expired");
+  }
+
+  // Check if already used
+  if (invite.usedById) {
+    return sendError(user.ws, "Invite code has already been used");
+  }
+
+  // Check if room is deleted
+  if (invite.room.deletedAt) {
+    return sendError(user.ws, "Room no longer exists");
+  }
+
+  // Check if user is already a member
+  const existingMembership = await prisma.roomMember.findUnique({
+    where: {
+      roomId_userId: {
+        roomId: invite.roomId,
+        userId: user.userId,
+      },
+    },
+  });
+
+  if (existingMembership) {
+    return sendError(user.ws, "You are already a member of this room");
+  }
+
+  // Mark invite as used
+  await prisma.roomInvite.update({
+    where: { id: invite.id },
+    data: {
+      usedById: user.userId,
+      usedAt: new Date(),
+    },
+  });
+
+  // Add user to room membership
+  await prisma.roomMember.create({
+    data: {
+      roomId: invite.roomId,
+      userId: user.userId,
+    },
+  });
+
+  console.log(`[INVITE] ${user.username} joined room ${invite.room.displayName} via invite ${code}`);
+
+  // Leave current room if in one
+  if (user.currentRoomId) {
+    await handleLeaveRoom(user, { roomId: user.currentRoomId });
+  }
+
+  // Create or get active room
+  let activeRoom = activeRooms.get(invite.room.id);
+  if (!activeRoom) {
+    activeRoom = {
+      id: invite.room.id,
+      name: invite.room.name,
+      displayName: invite.room.displayName,
+      roomType: invite.room.roomType,
+      encryptedKey: invite.room.encryptedKey || '',
+      users: [],
+    };
+    activeRooms.set(invite.room.id, activeRoom);
+  }
+
+  // Add user to active room
+  if (!activeRoom.users.find(u => u.userId === user.userId)) {
+    activeRoom.users.push(user);
+  }
+  user.currentRoomId = invite.room.id;
+
+  // Send room joined confirmation
+  const messages = invite.room.messages.map(m => ({
+    id: m.id,
+    username: m.sender.username,
+    ciphertext: m.ciphertext,
+    timestamp: m.createdAt.toISOString(),
+  })).reverse();
+
+  const onlineUsers = activeRoom.users.map(u => ({
+    username: u.username,
+    userId: u.userId,
+  }));
+
+  sendMessage(user.ws, {
+    type: "roomJoined",
+    payload: {
+      roomId: invite.room.id,
+      roomName: invite.room.name,
+      displayName: invite.room.displayName,
+      roomType: invite.room.roomType,
+      encryptedKey: invite.room.encryptedKey || '',
+      messages,
+      onlineUsers,
+    },
+  });
+
+  // Broadcast to others in room
+  broadcastToRoom(invite.room.id, {
+    type: "userJoined",
+    payload: {
+      username: user.username,
+      userId: user.userId,
+    },
+  }, user.ws);
 }
 
 async function handleCreateRoom(user: ConnectedUser, payload: CreateRoomPayload) {
