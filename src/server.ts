@@ -889,7 +889,21 @@ async function handleCreateRoom(user: ConnectedUser, payload: CreateRoomPayload)
   });
 
   if (existingRoom) {
-    return sendError(user.ws, `Room name '${name}' already exists`);
+    // If room exists and is NOT deleted, return error
+    if (!existingRoom.deletedAt) {
+      return sendError(user.ws, `Room name '${name}' already exists`);
+    }
+    
+    // If room is deleted, rename it to free up the name
+    // e.g. "general" -> "general_deleted_1678888888"
+    await prisma.room.update({
+      where: { id: existingRoom.id },
+      data: {
+        name: `${name}_deleted_${Date.now()}`,
+      },
+    });
+    
+    console.log(`[ROOM] Archived deleted room '${name}' to allow re-creation`);
   }
 
   // Generate encryption key for the room
