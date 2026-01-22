@@ -66,6 +66,10 @@ export interface TransferOwnershipPayload {
   newOwnerUsername: string;
 }
 
+export interface CreateDMPayload {
+  targetUsername: string;
+}
+
 export type ClientMessage =
   | BaseMessage<JoinRoomPayload> & { type: "joinRoom" }
   | BaseMessage<SendMessagePayload> & { type: "sendMessage" }
@@ -77,7 +81,8 @@ export type ClientMessage =
   | BaseMessage<JoinViaInvitePayload> & { type: "joinViaInvite" }
   | BaseMessage<RenameRoomPayload> & { type: "renameRoom" }
   | BaseMessage<DeleteRoomPayload> & { type: "deleteRoom" }
-  | BaseMessage<TransferOwnershipPayload> & { type: "transferOwnership" };
+  | BaseMessage<TransferOwnershipPayload> & { type: "transferOwnership" }
+  | BaseMessage<CreateDMPayload> & { type: "createDM" };
 
 // ============================================================================
 // SERVER → CLIENT MESSAGES

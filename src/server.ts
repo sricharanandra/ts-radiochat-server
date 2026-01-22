@@ -20,6 +20,7 @@ import {
   RenameRoomPayload,
   DeleteRoomPayload,
   TransferOwnershipPayload,
+  CreateDMPayload,
   BaseMessage,
 } from './types';
 import crypto from 'crypto';
@@ -188,6 +189,10 @@ wss.on("connection", async (ws: WebSocket, request) => {
 
         case "transferOwnership":
           await handleTransferOwnership(currentUser, message.payload);
+          break;
+
+        case "createDM":
+          await handleCreateDM(currentUser, message.payload);
           break;
 
         default:
@@ -787,6 +792,82 @@ async function handleTransferOwnership(user: ConnectedUser, payload: TransferOwn
   });
 
   console.log(`[ROOM] ${user.username} transferred ownership of ${room.name} to ${targetUser.username}`);
+}
+
+async function handleCreateDM(user: ConnectedUser, payload: CreateDMPayload) {
+  const { targetUsername } = payload;
+
+  if (!targetUsername) {
+    return sendError(user.ws, "Target username is required");
+  }
+
+  if (targetUsername === user.username) {
+    return sendError(user.ws, "You cannot DM yourself");
+  }
+
+  // Find target user
+  const targetUser = await prisma.user.findUnique({
+    where: { username: targetUsername },
+  });
+
+  if (!targetUser) {
+    return sendError(user.ws, "Target user not found");
+  }
+
+  // Check for existing DM room
+  // Find all DM rooms that current user is in
+  const userDMs = await prisma.room.findMany({
+    where: {
+      roomType: 'dm',
+      members: {
+        some: { userId: user.userId },
+      },
+    },
+    include: {
+      members: {
+        select: { userId: true },
+      },
+    },
+  });
+
+  // Check if any of these rooms also contain the target user
+  let dmRoom = userDMs.find(room => 
+    room.members.some(m => m.userId === targetUser.id)
+  );
+
+  if (!dmRoom) {
+    // Create new DM room
+    const name = `dm_${uuidv4()}`; // Internal unique name
+    // Encrypted key for the room
+    const encryptedKey = crypto.randomBytes(32).toString('hex');
+
+    // Create room
+    dmRoom = await prisma.room.create({
+      data: {
+        name,
+        displayName: `${user.username}, ${targetUser.username}`, // Default display name
+        roomType: 'dm',
+        encryptedKey,
+        creatorId: user.userId,
+        members: {
+          create: [
+            { userId: user.userId },
+            { userId: targetUser.id },
+          ],
+        },
+      },
+      include: {
+        members: { select: { userId: true } },
+      },
+    });
+    
+    console.log(`[DM] Created new DM room between ${user.username} and ${targetUser.username}`);
+  } else {
+    console.log(`[DM] Found existing DM room between ${user.username} and ${targetUser.username}`);
+  }
+
+  // Now join the room (reuse logic)
+  await handleJoinRoom(user, { roomId: dmRoom.id });
 }
 
 async function handleCreateRoom(user: ConnectedUser, payload: CreateRoomPayload) {
