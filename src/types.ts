@@ -40,12 +40,17 @@ export interface ListRoomsPayload {
   // Empty payload - just request the list
 }
 
+export interface TypingPayload {
+  roomId: string;
+}
+
 export type ClientMessage =
   | BaseMessage<JoinRoomPayload> & { type: "joinRoom" }
   | BaseMessage<SendMessagePayload> & { type: "sendMessage" }
   | BaseMessage<CreateRoomPayload> & { type: "createRoom" }
   | BaseMessage<LeaveRoomPayload> & { type: "leaveRoom" }
-  | BaseMessage<ListRoomsPayload> & { type: "listRooms" };
+  | BaseMessage<ListRoomsPayload> & { type: "listRooms" }
+  | BaseMessage<TypingPayload> & { type: "typing" };
 
 // ============================================================================
 // SERVER → CLIENT MESSAGES
@@ -111,6 +116,11 @@ export interface InfoPayload {
   message: string;
 }
 
+export interface UserTypingPayload {
+  username: string;
+  userId: string;
+}
+
 export type ServerMessage =
   | BaseMessage<MessagePayload> & { type: "message" }
   | BaseMessage<UserJoinedPayload> & { type: "userJoined" }
@@ -119,7 +129,8 @@ export type ServerMessage =
   | BaseMessage<RoomCreatedPayload> & { type: "roomCreated" }
   | BaseMessage<RoomsListPayload> & { type: "roomsList" }
   | BaseMessage<ErrorPayload> & { type: "error" }
-  | BaseMessage<InfoPayload> & { type: "info" };
+  | BaseMessage<InfoPayload> & { type: "info" }
+  | BaseMessage<UserTypingPayload> & { type: "userTyping" };
 
 // ============================================================================
 // SERVER STATE TYPES

@@ -161,6 +161,10 @@ wss.on("connection", async (ws: WebSocket, request) => {
           await handleListRooms(currentUser, message.payload);
           break;
 
+        case "typing":
+          handleTyping(currentUser, message.payload);
+          break;
+
         default:
           console.error(`[WS] Unknown message type: ${(message as any).type}`);
           sendError(ws, `Unknown message type: ${(message as any).type}`);
@@ -381,6 +385,23 @@ async function handleSendMessage(user: ConnectedUser, payload: SendMessagePayloa
   });
 
   console.log(`[MSG] Message ${message.id} broadcast to room ${roomId}`);
+}
+
+function handleTyping(user: ConnectedUser, payload: { roomId: string }) {
+  const { roomId } = payload;
+
+  if (!user.currentRoomId || user.currentRoomId !== roomId) {
+    return; // Silently ignore if not in the room
+  }
+
+  // Broadcast typing indicator to other users in room
+  broadcastToRoom(roomId, {
+    type: "userTyping",
+    payload: {
+      username: user.username,
+      userId: user.userId,
+    },
+  }, user.ws); // Exclude the sender
 }
 
 async function handleCreateRoom(user: ConnectedUser, payload: CreateRoomPayload) {
