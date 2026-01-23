@@ -37,6 +37,7 @@ fi
 
 # Build the application
 echo "🔨 Building application..."
+npx prisma generate
 npm run build
 
 # Create logs directory
