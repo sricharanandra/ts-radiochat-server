@@ -11,7 +11,7 @@ WorkingDirectory=/opt/eurus
 
 # Environment
 Environment=NODE_ENV=production
-EnvironmentFile=/opt/eurus/.env.production
+EnvironmentFile=/opt/eurus/.env
 
 # Execution
 ExecStart=/usr/bin/node dist/server.js
