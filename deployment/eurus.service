@@ -1,17 +1,17 @@
 [Unit]
-Description=RadioChat WebSocket Server
+Description=Eurus WebSocket Server
 After=network.target postgresql.service
 Wants=postgresql.service
 
 [Service]
 Type=simple
-User=radiochat
-Group=radiochat
-WorkingDirectory=/opt/radiochat
+User=eurus
+Group=eurus
+WorkingDirectory=/opt/eurus
 
 # Environment
 Environment=NODE_ENV=production
-EnvironmentFile=/opt/radiochat/.env.production
+EnvironmentFile=/opt/eurus/.env.production
 
 # Execution
 ExecStart=/usr/bin/node dist/server.js
@@ -23,16 +23,16 @@ StartLimitInterval=300
 StartLimitBurst=5
 
 # Logging
-StandardOutput=append:/var/log/radiochat/server.log
-StandardError=append:/var/log/radiochat/error.log
-SyslogIdentifier=radiochat
+StandardOutput=append:/var/log/eurus/server.log
+StandardError=append:/var/log/eurus/error.log
+SyslogIdentifier=eurus
 
 # Security
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/opt/radiochat
+ReadWritePaths=/opt/eurus
 ReadOnlyPaths=/etc/letsencrypt
 
 # Resource limits (critical for 1GB RAM)

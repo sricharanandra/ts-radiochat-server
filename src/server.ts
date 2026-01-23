@@ -34,7 +34,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Startup logging
-console.log(`[STARTUP] RadioChat Server v1.0.0`);
+console.log(`[STARTUP] Eurus Server v1.0.0`);
 console.log(`[STARTUP] Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`[STARTUP] Host: ${HOST}:${PORT}`);
 console.log(`[STARTUP] Authentication: ${isProduction ? 'SSH Keys Required' : 'Development Mode (simpleLogin enabled)'}`);
@@ -61,7 +61,7 @@ const wss = new WebSocketServer({
 });
 
 console.log("=====================================================");
-console.log("🚀 RadioChat Server Starting...");
+console.log("🚀 Eurus Server Starting...");
 console.log("=====================================================");
 
 // ============================================================================

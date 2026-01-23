@@ -1,4 +1,4 @@
-# RadioChat Server
+# Eurus Server
 
 WebSocket-based chat server with end-to-end encryption, SSH key authentication, and PostgreSQL storage.
 
@@ -27,7 +27,7 @@ NODE_ENV=production
 PORT=8081
 HOST=127.0.0.1
 JWT_SECRET=your-secret-here
-DATABASE_URL=postgresql://user:pass@localhost:5432/radiochat
+DATABASE_URL=postgresql://user:pass@localhost:5432/eurus
 ```
 
 ## User Registration
@@ -35,7 +35,8 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/radiochat
 Register user with SSH public key:
 
 ```bash
-./scripts/register-user.sh --username alice --key-file ~/.ssh/id_ed25519.pub --server https://your-server.com
+# Using the CLI directly
+node dist/cli/register.js --username alice --key-file ~/.ssh/id_ed25519.pub --server https://eurus.sreus.tech
 ```
 
 ## API Endpoints

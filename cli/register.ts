@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * RadioChat User Registration CLI
+ * Eurus User Registration CLI
  * 
  * Registers a new user with their SSH public key.
  * 
@@ -114,7 +114,7 @@ async function registerUser(serverUrl: string, username: string, publicKey: stri
     console.log('JWT Token (save this for authentication):');
     console.log(`  ${registerData.token}`);
     console.log('');
-    console.log('You can now connect with the RadioChat TUI client.');
+    console.log('You can now connect with the Eurus TUI client.');
     
   } catch (error: any) {
     console.error(`Error connecting to server: ${error.message}`);
@@ -125,7 +125,7 @@ async function registerUser(serverUrl: string, username: string, publicKey: stri
  * Display usage information
  */
 function showUsage(): void {
-  console.log('RadioChat User Registration CLI');
+  console.log('Eurus User Registration CLI');
   console.log('');
   console.log('Usage:');
   console.log('  register --username <username> --key-file <path-to-public-key> [--server <url>]');
@@ -139,7 +139,7 @@ function showUsage(): void {
   console.log('');
   console.log('Examples:');
   console.log('  register --username alice --key-file ~/.ssh/id_ed25519.pub');
-  console.log('  register --username bob --key-file ~/.ssh/id_rsa.pub --server https://radiochat.example.com');
+  console.log('  register --username bob --key-file ~/.ssh/id_rsa.pub --server https://eurus.example.com');
   console.log('');
   console.log('Supported key types: Ed25519, RSA');
   process.exit(1);
@@ -161,7 +161,7 @@ async function main(): Promise<void> {
   // Read public key
   const publicKey = args.key || readPublicKey(args.keyFile!);
   // Default server URL
-  const serverUrl = args.serverUrl || process.env.RADIOCHAT_SERVER_URL || 'http://localhost:8081';
+  const serverUrl = args.serverUrl || process.env.EURUS_SERVER_URL || 'http://localhost:8081';
   console.log(`Registering user: ${args.username}`);
   console.log(`Server: ${serverUrl}`);
   console.log('');
