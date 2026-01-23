@@ -14,7 +14,7 @@ const s3Client = new S3Client({
   forcePathStyle: true, // Required for Oracle Object Storage
 });
 
-const BUCKET_NAME = process.env.OCI_BUCKET_NAME || "radiochat-images";
+const BUCKET_NAME = process.env.OCI_BUCKET_NAME || "eurus-images";
 
 /**
  * Upload encrypted image data to Oracle Object Storage
