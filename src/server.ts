@@ -894,17 +894,26 @@ function handleVoiceSignal(user: ConnectedUser, payload: VoiceSignalPayload) {
     broadcastVoiceState(roomId);
     
     // Broadcast 'join_voice' signal to room so others initiate P2P
-    broadcastToRoom(roomId, {
-      type: "voiceSignal",
-      payload: {
-        roomId,
-        senderUserId: user.userId,
-        senderUsername: user.username,
-        type,
-        data: ""
+    const roomMembers = room.users.filter(roomUser => roomUser.userId !== user.userId);
+    roomMembers.forEach(roomUser => {
+      if (!room.voiceUsers?.has(roomUser.userId)) {
+        return;
       }
-    }, user.ws); // Exclude self
-    
+      if (roomUser.ws.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      sendMessage(roomUser.ws, {
+        type: "voiceSignal",
+        payload: {
+          roomId,
+          senderUserId: user.userId,
+          senderUsername: user.username,
+          type,
+          data: "",
+        },
+      });
+    });
+
     console.log(`[VOICE] ${user.username} joined voice in room ${roomId}`);
     return;
   }
@@ -913,24 +922,41 @@ function handleVoiceSignal(user: ConnectedUser, payload: VoiceSignalPayload) {
     room.voiceUsers.delete(user.userId);
     broadcastVoiceState(roomId);
     
-    broadcastToRoom(roomId, {
-      type: "voiceSignal",
-      payload: {
-        roomId,
-        senderUserId: user.userId,
-        senderUsername: user.username,
-        type,
-        data: ""
+    const roomMembers = room.users.filter(roomUser => roomUser.userId !== user.userId);
+    roomMembers.forEach(roomUser => {
+      if (!room.voiceUsers?.has(roomUser.userId)) {
+        return;
       }
-    }, user.ws);
+      if (roomUser.ws.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      sendMessage(roomUser.ws, {
+        type: "voiceSignal",
+        payload: {
+          roomId,
+          senderUserId: user.userId,
+          senderUsername: user.username,
+          type,
+          data: "",
+        },
+      });
+    });
     
     console.log(`[VOICE] ${user.username} left voice in room ${roomId}`);
+    return;
+  }
+
+  // Only allow voice signaling between users who joined voice
+  if (!room.voiceUsers.has(user.userId)) {
     return;
   }
 
   // Handle P2P Signaling (Offer/Answer/Candidate)
   // If targetUserId is set, forward ONLY to that user
   if (targetUserId) {
+    if (!room.voiceUsers.has(targetUserId)) {
+      return;
+    }
     const targetUser = room.users.find(u => u.userId === targetUserId);
     if (targetUser && targetUser.ws.readyState === WebSocket.OPEN) {
       sendMessage(targetUser.ws, {
