@@ -70,6 +70,20 @@ export interface CreateDMPayload {
   targetUsername: string;
 }
 
+export interface VoiceSignalPayload {
+  targetUserId?: string;
+  senderUserId?: string;
+  senderUsername?: string;
+  roomId: string;
+  type: string; // "offer" | "answer" | "candidate" | "join_voice" | "leave_voice"
+  data: string;
+}
+
+export interface VoiceStatePayload {
+  roomId: string;
+  activeUsers: string[]; // List of Usernames
+}
+
 export type ClientMessage =
   | BaseMessage<JoinRoomPayload> & { type: "joinRoom" }
   | BaseMessage<SendMessagePayload> & { type: "sendMessage" }
@@ -82,7 +96,8 @@ export type ClientMessage =
   | BaseMessage<RenameRoomPayload> & { type: "renameRoom" }
   | BaseMessage<DeleteRoomPayload> & { type: "deleteRoom" }
   | BaseMessage<TransferOwnershipPayload> & { type: "transferOwnership" }
-  | BaseMessage<CreateDMPayload> & { type: "createDM" };
+  | BaseMessage<CreateDMPayload> & { type: "createDM" }
+  | BaseMessage<VoiceSignalPayload> & { type: "voiceSignal" };
 
 // ============================================================================
 // SERVER → CLIENT MESSAGES
@@ -195,7 +210,9 @@ export type ServerMessage =
   | BaseMessage<InviteCreatedPayload> & { type: "inviteCreated" }
   | BaseMessage<RoomRenamedPayload> & { type: "roomRenamed" }
   | BaseMessage<RoomDeletedPayload> & { type: "roomDeleted" }
-  | BaseMessage<OwnershipTransferredPayload> & { type: "ownershipTransferred" };
+  | BaseMessage<OwnershipTransferredPayload> & { type: "ownershipTransferred" }
+  | BaseMessage<VoiceSignalPayload> & { type: "voiceSignal" }
+  | BaseMessage<VoiceStatePayload> & { type: "voiceState" };
 
 // ============================================================================
 // SERVER STATE TYPES
@@ -216,6 +233,7 @@ export interface ActiveRoom {
   roomType: string;
   encryptedKey: string;
   users: ConnectedUser[];
+  voiceUsers?: Set<string>; // UserIDs currently in voice
 }
 
 // ============================================================================

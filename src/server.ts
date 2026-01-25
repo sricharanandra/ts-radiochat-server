@@ -21,6 +21,7 @@ import {
   DeleteRoomPayload,
   TransferOwnershipPayload,
   CreateDMPayload,
+  VoiceSignalPayload,
   BaseMessage,
 } from './types';
 import crypto from 'crypto';
@@ -193,6 +194,10 @@ wss.on("connection", async (ws: WebSocket, request) => {
 
         case "createDM":
           await handleCreateDM(currentUser, message.payload);
+          break;
+
+        case "voiceSignal":
+          handleVoiceSignal(currentUser, message.payload);
           break;
 
         default:
@@ -868,6 +873,101 @@ async function handleCreateDM(user: ConnectedUser, payload: CreateDMPayload) {
 
   // Now join the room (reuse logic)
   await handleJoinRoom(user, { roomId: dmRoom.id });
+}
+
+function handleVoiceSignal(user: ConnectedUser, payload: VoiceSignalPayload) {
+  const { roomId, targetUserId, type, data } = payload;
+
+  if (!roomId) return;
+
+  const room = activeRooms.get(roomId);
+  if (!room) return;
+
+  // Initialize voice set if missing
+  if (!room.voiceUsers) {
+    room.voiceUsers = new Set();
+  }
+
+  // Handle Voice State Updates
+  if (type === 'join_voice') {
+    room.voiceUsers.add(user.userId);
+    broadcastVoiceState(roomId);
+    
+    // Broadcast 'join_voice' signal to room so others initiate P2P
+    broadcastToRoom(roomId, {
+      type: "voiceSignal",
+      payload: {
+        roomId,
+        senderUserId: user.userId,
+        senderUsername: user.username,
+        type,
+        data: ""
+      }
+    }, user.ws); // Exclude self
+    
+    console.log(`[VOICE] ${user.username} joined voice in room ${roomId}`);
+    return;
+  }
+
+  if (type === 'leave_voice') {
+    room.voiceUsers.delete(user.userId);
+    broadcastVoiceState(roomId);
+    
+    broadcastToRoom(roomId, {
+      type: "voiceSignal",
+      payload: {
+        roomId,
+        senderUserId: user.userId,
+        senderUsername: user.username,
+        type,
+        data: ""
+      }
+    }, user.ws);
+    
+    console.log(`[VOICE] ${user.username} left voice in room ${roomId}`);
+    return;
+  }
+
+  // Handle P2P Signaling (Offer/Answer/Candidate)
+  // If targetUserId is set, forward ONLY to that user
+  if (targetUserId) {
+    const targetUser = room.users.find(u => u.userId === targetUserId);
+    if (targetUser && targetUser.ws.readyState === WebSocket.OPEN) {
+      sendMessage(targetUser.ws, {
+        type: "voiceSignal",
+        payload: {
+          roomId,
+          senderUserId: user.userId,
+          senderUsername: user.username, // Helpful for UI
+          type,
+          data
+        }
+      });
+      console.log(`[VOICE] Forwarded ${type} from ${user.username} to ${targetUser.username}`);
+    }
+  } else {
+    // If no target, broadcast to all (rare for signaling, usually specific)
+    // But maybe useful for initial discovery if 'join_voice' didn't suffice
+  }
+}
+
+function broadcastVoiceState(roomId: string) {
+  const room = activeRooms.get(roomId);
+  if (!room || !room.voiceUsers) return;
+
+  // Convert UserIDs to Usernames for UI display
+  const activeUsernames = Array.from(room.voiceUsers).map(userId => {
+    const u = room.users.find(u => u.userId === userId);
+    return u ? u.username : "Unknown";
+  });
+
+  broadcastToRoom(roomId, {
+    type: "voiceState",
+    payload: {
+      roomId,
+      activeUsers: activeUsernames
+    }
+  });
 }
 
 async function handleCreateRoom(user: ConnectedUser, payload: CreateRoomPayload) {
